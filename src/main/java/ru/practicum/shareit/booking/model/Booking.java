@@ -4,6 +4,8 @@ import jakarta.validation.constraints.FutureOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import ru.practicum.shareit.booking.validations.CheckDate;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.User;
 
 import java.time.LocalDate;
 
@@ -17,14 +19,14 @@ public class Booking {
     private long id;
 
     @FutureOrPresent
-    @CheckDate
+    //@CheckDate
     private LocalDate start;
 
     @FutureOrPresent
-    @CheckDate
+   // @CheckDate
     private LocalDate end;
 
-    /*private Item item;
+    private Item item;
     private User booker;
-    private BookingStatus status;*/
+    private BookingStatus status;
 }

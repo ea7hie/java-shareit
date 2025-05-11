@@ -3,23 +3,24 @@ package ru.practicum.shareit.booking.validations;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
 @Slf4j
+@Component
 public class DateValidator implements ConstraintValidator<CheckDate, LocalDate[]> {
-   /* private LocalDate dateOfStart;
-
-    @Override
-    public void initialize(CheckDate constraintAnnotation) {
-        dateOfStart = LocalDate.parse(constraintAnnotation.value());
-    }*/
-
     @Override
     public boolean isValid(LocalDate[] localDates, ConstraintValidatorContext constraintValidatorContext) {
-        log.info("{}", localDates[0].isBefore(localDates[1]));
-        return /*localDateTimes[0].isAfter(LocalDateTime.now()) && */ localDates[0].isBefore(localDates[1]);
+        return  localDates[0].isBefore(localDates[1]);
     }
+}
+    /* private LocalDate dateOfStart;
+
+     @Override
+     public void initialize(CheckDate constraintAnnotation) {
+         dateOfStart = LocalDate.parse(constraintAnnotation.value());
+     }*/
 
    /* @Override
     public boolean isValid(LocalDate localDate, ConstraintValidatorContext constraintValidatorContext) {
@@ -49,4 +50,4 @@ public class DateValidator implements ConstraintValidator<CheckDate, LocalDate[]
     public boolean isValid(LocalDateTime localDateTime, ConstraintValidatorContext constraintValidatorContext) {
         return false;
     }*/
-}
+
