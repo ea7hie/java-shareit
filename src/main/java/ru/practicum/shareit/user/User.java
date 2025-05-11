@@ -14,9 +14,9 @@ import lombok.Data;
 public class User {
     private long id;
 
-    @NotBlank
+    @NotBlank(message = "Имя пользователя не может быть пустым")
     private String name;
 
-    @Email
+    @Email(message = "Email пользователя не соответствует формату")
     private String email;
 }
