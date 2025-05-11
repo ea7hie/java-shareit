@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.dao;
 
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.exception.model.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -11,10 +12,10 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ItemRepositoryImpl implements ItemRepository {
     private Map<Long, Item> allItemsById;
-    private long id;
+    private long id = 0;
 
     @Override
     public Item createItem(Item item) {

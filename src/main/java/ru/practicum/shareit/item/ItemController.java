@@ -20,10 +20,10 @@ public class ItemController {
         return itemService.createItem(itemDto, ownerId);
     }
 
-    @GetMapping
+   /* @GetMapping
     public Collection<ItemDto> getAllItems() {
         return itemService.getAllItemsDto();
-    }
+    }*/
 
     @GetMapping
     public Collection<ItemDto> getItemByOwnerId(@RequestHeader("X-Sharer-User-Id") long userId) {
