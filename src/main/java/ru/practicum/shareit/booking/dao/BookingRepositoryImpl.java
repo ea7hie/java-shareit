@@ -5,9 +5,12 @@ import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.exception.model.NotFoundException;
-import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.exception.model.ValidationException;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 @Repository
 public class BookingRepositoryImpl implements BookingRepository {
@@ -76,20 +79,23 @@ public class BookingRepositoryImpl implements BookingRepository {
                     bookingForUpdate.getStart() : bookingDtoForUpdate.getStart());
             bookingForUpdate.setEnd(bookingDtoForUpdate.getEnd() == null ?
                     bookingForUpdate.getEnd() : bookingDtoForUpdate.getEnd());
-        }
-
-        if (bookingForUpdate.getItem().getOwner().getId() == userId) {
+        } else if (bookingForUpdate.getItem().getOwner().getId() == userId) {
             bookingForUpdate.setStatus(bookingDtoForUpdate.getStatus() == null ?
                     bookingForUpdate.getStatus() : bookingDtoForUpdate.getStatus());
+        } else {
+            throw new ValidationException("У вас нет прав доступа к редактированию этой брони");
         }
 
         return allBookingsById.put(bookingForUpdate.getId(), bookingForUpdate);
     }
 
     @Override
-    public Booking deleteBooking(long bookingIdForDelete) {
-        getBookingOrThrow(bookingIdForDelete, "удаления");
-        return allBookingsById.remove(bookingIdForDelete);
+    public Booking deleteBooking(long bookingIdForDelete, long userId) {
+        Booking bookingForDelete = getBookingOrThrow(bookingIdForDelete, "удаления");
+        if (bookingForDelete.getBooker().getId() == userId) {
+            return allBookingsById.remove(bookingIdForDelete);
+        }
+        throw new ValidationException("У вас нет прав доступа к удалению этой брони");
     }
 
     private long getNewId() {

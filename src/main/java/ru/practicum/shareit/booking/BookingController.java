@@ -64,7 +64,7 @@ public class BookingController {
     }
 
     @DeleteMapping("/{bookingId}")
-    public BookingDto deleteBooking(@PathVariable long bookingId) {
-        return bookingService.deleteBooking(bookingId);
+    public BookingDto deleteBooking(@PathVariable long bookingId, @RequestHeader("X-Sharer-User-Id") long userId) {
+        return bookingService.deleteBooking(bookingId, userId);
     }
 }

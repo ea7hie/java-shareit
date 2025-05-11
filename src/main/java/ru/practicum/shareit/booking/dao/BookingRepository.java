@@ -25,5 +25,5 @@ public interface BookingRepository {
 
     Booking updateBooking(BookingDto bookingDtoForUpdate, long userId);
 
-    Booking deleteBooking(long bookingIdForDelete);
+    Booking deleteBooking(long bookingIdForDelete, long userId);
 }

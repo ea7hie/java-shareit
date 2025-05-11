@@ -94,8 +94,9 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingDto deleteBooking(long bookingDtoIdForDelete) {
-        return BookingMapper.toBookingDto(bookingRepository.deleteBooking(bookingDtoIdForDelete));
+    public BookingDto deleteBooking(long bookingDtoIdForDelete, long userId) {
+        userRepository.getUserByID(userId);
+        return BookingMapper.toBookingDto(bookingRepository.deleteBooking(bookingDtoIdForDelete, userId));
     }
 
     private boolean isTimeOverlaps(Booking bookingForCheck) { //if true - то нельзя добавлять, есть пересечения!
