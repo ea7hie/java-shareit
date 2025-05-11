@@ -41,7 +41,7 @@ public class UserRepositoryImpl implements UserRepository {
         userForUpdate.setName(userDto.getName() == null ? userForUpdate.getName() : userDto.getName());
         userForUpdate.setEmail(userDto.getEmail() == null ? userForUpdate.getEmail() : userDto.getEmail());
 
-        return userForUpdate;
+        return allUsersById.put(userForUpdate.getId(), userForUpdate);
     }
 
     @Override

@@ -12,7 +12,6 @@ import java.util.Collection;
 @AllArgsConstructor
 public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
-    private UserMapper mapper;
 
     @Override
     public UserDto createUser(UserDto userDto) {
