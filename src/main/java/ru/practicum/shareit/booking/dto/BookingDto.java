@@ -4,7 +4,6 @@ import jakarta.validation.constraints.FutureOrPresent;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import ru.practicum.shareit.booking.model.BookingStatus;
-import ru.practicum.shareit.booking.validations.CheckDate;
 
 import java.time.LocalDate;
 
@@ -18,11 +17,9 @@ public class BookingDto {
     private long id;
 
     @FutureOrPresent
-    @CheckDate
     private LocalDate start;
 
     @FutureOrPresent
-    @CheckDate
     private LocalDate end;
 
     private long itemId;

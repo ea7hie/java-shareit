@@ -37,8 +37,10 @@ public class ItemRequestController {
         return requestService.getAllItemRequestsFromRequester(requesterId);
     }
 
-    @PatchMapping
-    public ItemRequestDto updateItemRequest(ItemRequestDto itemRequestDtoForUpdate, long userId) {
+    @PatchMapping("/{itemReqId}")
+    public ItemRequestDto updateItemRequest(ItemRequestDto itemRequestDtoForUpdate,
+                                            long userId, @PathVariable long itemReqId) {
+        itemRequestDtoForUpdate.setId(itemReqId);
         return requestService.updateItemRequest(itemRequestDtoForUpdate, userId);
     }
 

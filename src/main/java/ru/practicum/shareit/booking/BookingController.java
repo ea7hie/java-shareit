@@ -59,7 +59,9 @@ public class BookingController {
     }
 
     @PatchMapping("/{bookingId}")
-    public BookingDto updateBooking(@RequestBody BookingDto booking, @RequestHeader("X-Sharer-User-Id") long userId) {
+    public BookingDto updateBooking(@RequestBody BookingDto booking, @RequestHeader("X-Sharer-User-Id") long userId,
+                                    @PathVariable long bookingId) {
+        booking.setId(bookingId);
         return bookingService.updateBooking(booking, userId);
     }
 
