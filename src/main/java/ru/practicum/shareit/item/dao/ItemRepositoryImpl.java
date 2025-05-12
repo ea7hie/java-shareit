@@ -63,8 +63,8 @@ public class ItemRepositoryImpl implements ItemRepository {
         itemForUpdate.setName(itemDto.getName() == null ? itemForUpdate.getName() : itemDto.getName());
         itemForUpdate.setDescription(itemDto.getDescription() == null ? itemForUpdate.getDescription()
                 : itemDto.getDescription());
-        itemForUpdate.setAvailable(itemDto.getIsAvailable() == null ? itemForUpdate.isAvailable()
-                : itemDto.getIsAvailable());
+        itemForUpdate.setAvailable(itemDto.getAvailable() == null ? itemForUpdate.isAvailable()
+                : itemDto.getAvailable());
 
         return allItemsById.put(itemForUpdate.getId(), itemForUpdate);
     }
