@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user.dao;
 
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.exception.model.IsNotUniqueEmailException;
 import ru.practicum.shareit.exception.model.NotFoundException;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -17,6 +18,9 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User createUser(User user) {
+        if (isEmailUsedAlready(user.getEmail())) {
+            throw new IsNotUniqueEmailException("Используйте другой email для регистрации.");
+        }
         user.setId(getNewId());
         allUsersById.put(user.getId(), user);
         return user;
@@ -35,6 +39,10 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public User updateUser(UserDto userDto) {
         User userForUpdate = getUserOrThrow(userDto.getId(), "обновления");
+
+        if (isEmailUsedAlready(userDto.getEmail())) {
+            throw new IsNotUniqueEmailException("Используйте другой email для обновления текущего email.");
+        }
 
         userForUpdate.setName(userDto.getName() == null ? userForUpdate.getName() : userDto.getName());
         userForUpdate.setEmail(userDto.getEmail() == null ? userForUpdate.getEmail() : userDto.getEmail());
@@ -58,5 +66,12 @@ public class UserRepositoryImpl implements UserRepository {
             throw new NotFoundException(String.format("Пользователя с id = %d для %s не найдено", userId, message));
         }
         return optionalUser.get();
+    }
+
+    private boolean isEmailUsedAlready(String emailForCheck) {
+        return allUsersById.values().stream()
+                .map(User::getEmail)
+                .toList()
+                .contains(emailForCheck);
     }
 }

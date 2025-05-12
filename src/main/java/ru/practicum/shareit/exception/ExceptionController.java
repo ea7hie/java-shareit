@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.shareit.exception.dto.ExceptionDto;
+import ru.practicum.shareit.exception.model.IsNotUniqueEmailException;
 import ru.practicum.shareit.exception.model.NotFoundException;
 import ru.practicum.shareit.exception.model.ValidationException;
 
@@ -30,6 +31,12 @@ public class ExceptionController {
     public ExceptionDto handleValidationExc(final MethodArgumentNotValidException e) {
         return new ExceptionDto("Ошибка валидации данных, проверьте корректность введённых данных.",
                 e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ExceptionDto handleIsNotUniqueEmailException(final IsNotUniqueEmailException e) {
+        return new ExceptionDto("Данный email уже зарегистрирован в системе.", e.getMessage());
     }
 
     @ExceptionHandler
