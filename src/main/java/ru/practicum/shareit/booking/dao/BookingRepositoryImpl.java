@@ -4,8 +4,8 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.exception.model.AccessError;
 import ru.practicum.shareit.exception.model.NotFoundException;
-import ru.practicum.shareit.exception.model.ValidationException;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -83,7 +83,7 @@ public class BookingRepositoryImpl implements BookingRepository {
             bookingForUpdate.setStatus(bookingDtoForUpdate.getStatus() == null ?
                     bookingForUpdate.getStatus() : bookingDtoForUpdate.getStatus());
         } else {
-            throw new ValidationException("У вас нет прав доступа к редактированию этой брони");
+            throw new AccessError("У вас нет прав доступа к редактированию этой брони");
         }
 
         return allBookingsById.put(bookingForUpdate.getId(), bookingForUpdate);
@@ -95,7 +95,7 @@ public class BookingRepositoryImpl implements BookingRepository {
         if (bookingForDelete.getBooker().getId() == userId) {
             return allBookingsById.remove(bookingIdForDelete);
         }
-        throw new ValidationException("У вас нет прав доступа к удалению этой брони");
+        throw new AccessError("У вас нет прав доступа к удалению этой брони");
     }
 
     private long getNewId() {

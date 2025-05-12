@@ -2,10 +2,11 @@ package ru.practicum.shareit.item;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.model.ValidationException;
+import ru.practicum.shareit.exception.model.AccessError;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 
@@ -63,10 +64,11 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto updateItem(ItemDto itemDto, long ownerId) {
         userRepository.getUserByID(ownerId);
-        if (itemDto.getOwnerId() == ownerId) {
+        Item itemById = itemRepository.getItemById(itemDto.getId());
+        if (itemById.getOwner().getId() == ownerId) {
             return ItemMapper.toItemDto(itemRepository.updateItem(itemDto));
         }
-        throw new ValidationException("Редактировать данные о вещи может только владелец");
+        throw new AccessError("Редактировать данные о вещи может только владелец");
     }
 
     @Override
@@ -75,7 +77,7 @@ public class ItemServiceImpl implements ItemService {
         if (itemRepository.getItemById(itemId).getOwner().getId() == ownerId) {
             return ItemMapper.toItemDto(itemRepository.deleteItemById(itemId));
         }
-        throw new ValidationException("Удалять данные о вещи может только владелец");
+        throw new AccessError("Удалять данные о вещи может только владелец");
     }
 
     @Override

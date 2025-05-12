@@ -1,8 +1,8 @@
 package ru.practicum.shareit.request.dao;
 
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.exception.model.AccessError;
 import ru.practicum.shareit.exception.model.NotFoundException;
-import ru.practicum.shareit.exception.model.ValidationException;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
@@ -46,7 +46,7 @@ public class RequestRepositoryImpl implements RequestRepository {
             itemReqForUpdate.setDescription(itemRequestDtoForUpdate.getDescription() == null ?
                     itemReqForUpdate.getDescription() : itemRequestDtoForUpdate.getDescription());
         } else {
-            throw new ValidationException("У вас нет пра доступа к редактированию этого запроса");
+            throw new AccessError("У вас нет пра доступа к редактированию этого запроса");
         }
 
         return allItemRequestById.put(itemReqForUpdate.getId(), itemReqForUpdate);
@@ -56,7 +56,7 @@ public class RequestRepositoryImpl implements RequestRepository {
     public ItemRequest deleteItemRequest(long itemRequestIdForDelete, long userId) {
         ItemRequest itemRequestForDelete = getItemRequestOrThrow(itemRequestIdForDelete, "удаления");
         if (itemRequestForDelete.getRequester().getId() != userId) {
-            throw new ValidationException("У вас нет пра доступа к удалению этого запроса");
+            throw new AccessError("У вас нет пра доступа к удалению этого запроса");
         }
         return allItemRequestById.remove(itemRequestIdForDelete);
     }
