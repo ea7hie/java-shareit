@@ -57,9 +57,4 @@ public class ItemController {
     public Collection<ItemDto> deleteAllItemsByOwnerId(@RequestHeader("X-Sharer-User-Id") long ownerId) {
         return itemService.deleteAllItemsFromOwner(ownerId);
     }
-
-    @GetMapping("/all")
-    public Collection<ItemDto> getallItems() {
-        return itemService.getAllItemsDto();
-    }
 }
