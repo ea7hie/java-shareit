@@ -2,6 +2,9 @@ package ru.practicum.shareit.item;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.practicum.shareit.booking.BookingService;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.exception.model.AccessError;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -10,13 +13,18 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
 public class ItemServiceImpl implements ItemService {
     private ItemRepository itemRepository;
     private UserRepository userRepository;
+    private BookingService bookingService;
 
     @Override
     public ItemDto createItem(ItemDto itemDto, long userId) {
@@ -47,6 +55,10 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemDto> getAllItemBySearch(String text) {
+        if (text.isEmpty()) {
+            return List.of();
+        }
+
         return itemRepository.getAllItemBySearch(text).stream()
                 .map(ItemMapper::toItemDto)
                 .toList();
@@ -54,12 +66,15 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemDto> getAllItemsByOwnerIdAndSearch(long userId, String text) {
+        if (text.isEmpty()) {
+            return List.of();
+        }
+
         userRepository.getUserByID(userId);
 
         return itemRepository.getAllItemsByOwnerIdAndSearch(userId, text).stream()
                 .map(ItemMapper::toItemDto)
-                .toList();
-    }
+                .toList();    }
 
     @Override
     public ItemDto updateItem(ItemDto itemDto, long ownerId) {
@@ -85,6 +100,25 @@ public class ItemServiceImpl implements ItemService {
         userRepository.getUserByID(userId);
         return itemRepository.deleteAllItemsFromOwner(userId).stream()
                 .map(ItemMapper::toItemDto)
+                .toList();
+    }
+
+    private Collection<Item> getAllFreeItems(Collection<Item> itemsForCheck) {
+        List<Booking> curItemsInBooking = new ArrayList<>();
+        for (Item item : itemsForCheck) {
+            Booking curItem = new Booking(-1, LocalDate.now(), LocalDate.now(), item,
+                    item.getOwner(), BookingStatus.WAITING);
+            curItemsInBooking.add(curItem);
+        }
+
+        List<Long> dontFreeItems = curItemsInBooking.stream()
+                .filter(booking -> bookingService.isTimeOverlaps(booking))
+                .map(Booking::getItem)
+                .map(Item::getId)
+                .toList();
+
+       return itemsForCheck.stream()
+                .filter(item -> !dontFreeItems.contains(item.getId()))
                 .toList();
     }
 }

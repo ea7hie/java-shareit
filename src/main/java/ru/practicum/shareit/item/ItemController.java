@@ -31,14 +31,14 @@ public class ItemController {
         return itemService.getItemDtoById(idOfItem);
     }
 
-    @GetMapping("/search?text={text}")
+    @GetMapping("/search")
     public Collection<ItemDto> getItemBySearch(@RequestParam String text) {
-        return itemService.getAllItemBySearch(text);
+        return itemService.getAllItemBySearch(text.trim());
     }
 
-    @GetMapping("/owner/{ownerId}/search?text={text}")
+    @GetMapping("/owner/{ownerId}/search")
     public Collection<ItemDto> getItemBySearch(@PathVariable long ownerId, @RequestParam String text) {
-        return itemService.getAllItemsByOwnerIdAndSearch(ownerId, text);
+        return itemService.getAllItemsByOwnerIdAndSearch(ownerId, text.trim());
     }
 
     @PatchMapping("/{idOfItem}")
@@ -56,5 +56,10 @@ public class ItemController {
     @DeleteMapping
     public Collection<ItemDto> deleteAllItemsByOwnerId(@RequestHeader("X-Sharer-User-Id") long ownerId) {
         return itemService.deleteAllItemsFromOwner(ownerId);
+    }
+
+    @GetMapping("/all")
+    public Collection<ItemDto> getallItems() {
+        return itemService.getAllItemsDto();
     }
 }

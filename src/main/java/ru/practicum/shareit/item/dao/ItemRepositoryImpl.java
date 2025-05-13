@@ -51,8 +51,8 @@ public class ItemRepositoryImpl implements ItemRepository {
     public Collection<Item> getAllItemsByOwnerIdAndSearch(long userId, String text) {
         return allItemsById.values().stream()
                 .filter(item -> item.getOwner().getId() == userId)
-                .filter(Item::isAvailable)
                 .filter(item -> this.hasTextInDesc(item, text))
+                .filter(Item::isAvailable)
                 .toList();
     }
 
@@ -81,7 +81,7 @@ public class ItemRepositoryImpl implements ItemRepository {
 
         allItemsByOwnerId.stream()
                 .map(Item::getId)
-                .peek(id -> allItemsById.remove(id))
+                .peek(allItemsById::remove)
                 .toList();
 
         return allItemsByOwnerId;
@@ -100,6 +100,7 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     private boolean hasTextInDesc(Item item, String text) {
-        return item.getName().contains(text) || item.getDescription().contains(text);
+        return item.getName().toLowerCase().contains(text.toLowerCase())
+                || item.getDescription().toLowerCase().contains(text.toLowerCase());
     }
 }
