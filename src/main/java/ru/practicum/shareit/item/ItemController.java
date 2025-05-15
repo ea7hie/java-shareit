@@ -1,7 +1,7 @@
 package ru.practicum.shareit.item;
 
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
 
@@ -12,17 +12,18 @@ import java.util.Collection;
  */
 @RestController
 @RequestMapping("/items")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ItemController {
-    private ItemService itemService;
+    private final ItemService itemService;
+    private final String headerOfUserId = "X-Sharer-User-Id";
 
     @PostMapping
-    public ItemDto createNewItem(@Valid @RequestBody ItemDto itemDto, @RequestHeader("X-Sharer-User-Id") long ownerId) {
+    public ItemDto createNewItem(@Valid @RequestBody ItemDto itemDto, @RequestHeader(headerOfUserId) long ownerId) {
         return itemService.createItem(itemDto, ownerId);
     }
 
     @GetMapping
-    public Collection<ItemDto> getItemByOwnerId(@RequestHeader("X-Sharer-User-Id") long userId) {
+    public Collection<ItemDto> getItemByOwnerId(@RequestHeader(headerOfUserId) long userId) {
         return itemService.getAllItemsByOwnerId(userId);
     }
 
@@ -42,19 +43,19 @@ public class ItemController {
     }
 
     @PatchMapping("/{idOfItem}")
-    public ItemDto updateItem(@RequestBody ItemDto itemDto, @RequestHeader("X-Sharer-User-Id") long ownerId,
+    public ItemDto updateItem(@RequestBody ItemDto itemDto, @RequestHeader(headerOfUserId) long ownerId,
                               @PathVariable long idOfItem) {
         itemDto.setId(idOfItem);
         return itemService.updateItem(itemDto, ownerId);
     }
 
     @DeleteMapping("/{idOfItem}")
-    public ItemDto deleteItem(@PathVariable long idOfItem, @RequestHeader("X-Sharer-User-Id") long ownerId) {
+    public ItemDto deleteItem(@PathVariable long idOfItem, @RequestHeader(headerOfUserId) long ownerId) {
         return itemService.deleteItemById(idOfItem, ownerId);
     }
 
     @DeleteMapping
-    public Collection<ItemDto> deleteAllItemsByOwnerId(@RequestHeader("X-Sharer-User-Id") long ownerId) {
+    public Collection<ItemDto> deleteAllItemsByOwnerId(@RequestHeader(headerOfUserId) long ownerId) {
         return itemService.deleteAllItemsFromOwner(ownerId);
     }
 }

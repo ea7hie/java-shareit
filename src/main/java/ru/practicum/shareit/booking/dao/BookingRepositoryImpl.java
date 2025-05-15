@@ -4,6 +4,7 @@ import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.exception.model.AccessError;
 import ru.practicum.shareit.exception.model.NotFoundException;
 
@@ -16,6 +17,9 @@ import java.util.Optional;
 public class BookingRepositoryImpl implements BookingRepository {
     private final Map<Long, Booking> allBookingsById = new HashMap<>();
     private long id = 0;
+
+    private final String messageCantUpdate = "У вас нет прав доступа к редактированию этой брони.";
+    private final String messageCantDelete = "У вас нет прав доступа к удалению этой брони.";
 
     @Override
     public Booking createBooking(Booking booking) {
@@ -31,7 +35,7 @@ public class BookingRepositoryImpl implements BookingRepository {
 
     @Override
     public Booking getBookingById(long bookingId) {
-        return getBookingOrThrow(bookingId, "отображения");
+        return getBookingOrThrow(bookingId, Actions.TO_VIEW);
     }
 
     @Override
@@ -72,7 +76,7 @@ public class BookingRepositoryImpl implements BookingRepository {
 
     @Override
     public Booking updateBooking(BookingDto bookingDtoForUpdate, long userId) {
-        Booking bookingForUpdate = getBookingOrThrow(bookingDtoForUpdate.getId(), "обновления");
+        Booking bookingForUpdate = getBookingOrThrow(bookingDtoForUpdate.getId(), Actions.TO_UPDATE);
 
         if (bookingForUpdate.getBooker().getId() == userId) {
             bookingForUpdate.setStart(bookingDtoForUpdate.getStart() == null ?
@@ -83,7 +87,7 @@ public class BookingRepositoryImpl implements BookingRepository {
             bookingForUpdate.setStatus(bookingDtoForUpdate.getStatus() == null ?
                     bookingForUpdate.getStatus() : bookingDtoForUpdate.getStatus());
         } else {
-            throw new AccessError("У вас нет прав доступа к редактированию этой брони");
+            throw new AccessError(messageCantUpdate);
         }
 
         return allBookingsById.put(bookingForUpdate.getId(), bookingForUpdate);
@@ -91,11 +95,11 @@ public class BookingRepositoryImpl implements BookingRepository {
 
     @Override
     public Booking deleteBooking(long bookingIdForDelete, long userId) {
-        Booking bookingForDelete = getBookingOrThrow(bookingIdForDelete, "удаления");
+        Booking bookingForDelete = getBookingOrThrow(bookingIdForDelete, Actions.TO_DELETE);
         if (bookingForDelete.getBooker().getId() == userId) {
             return allBookingsById.remove(bookingIdForDelete);
         }
-        throw new AccessError("У вас нет прав доступа к удалению этой брони");
+        throw new AccessError(messageCantDelete);
     }
 
     private long getNewId() {

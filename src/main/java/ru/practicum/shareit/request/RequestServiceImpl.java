@@ -1,6 +1,6 @@
 package ru.practicum.shareit.request;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.request.dao.RequestRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
@@ -11,10 +11,10 @@ import ru.practicum.shareit.user.dao.UserRepository;
 import java.util.Collection;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class RequestServiceImpl implements RequestService {
-    private RequestRepository requestRepository;
-    private UserRepository userRepository;
+    private final RequestRepository requestRepository;
+    private final UserRepository userRepository;
 
     @Override
     public ItemRequestDto createItemRequest(ItemRequestDto itemRequestDto, long userId) {

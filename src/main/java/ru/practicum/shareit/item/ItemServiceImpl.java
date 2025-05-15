@@ -1,8 +1,7 @@
 package ru.practicum.shareit.item;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.exception.model.AccessError;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -15,11 +14,13 @@ import java.util.Collection;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
-    private ItemRepository itemRepository;
-    private UserRepository userRepository;
-    private BookingService bookingService;
+    private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
+
+    private final String messageCantDelete = "Удалять данные о вещи может только владелец.";
+    private final String messageCantUpdate = "Редактировать данные о вещи может только владелец.";
 
     @Override
     public ItemDto createItem(ItemDto itemDto, long userId) {
@@ -79,7 +80,7 @@ public class ItemServiceImpl implements ItemService {
         if (itemById.getOwner().getId() == ownerId) {
             return ItemMapper.toItemDto(itemRepository.updateItem(itemDto));
         }
-        throw new AccessError("Редактировать данные о вещи может только владелец");
+        throw new AccessError(messageCantUpdate);
     }
 
     @Override
@@ -88,7 +89,7 @@ public class ItemServiceImpl implements ItemService {
         if (itemRepository.getItemById(itemId).getOwner().getId() == ownerId) {
             return ItemMapper.toItemDto(itemRepository.deleteItemById(itemId));
         }
-        throw new AccessError("Удалять данные о вещи может только владелец");
+        throw new AccessError(messageCantDelete);
     }
 
     @Override

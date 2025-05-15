@@ -1,6 +1,6 @@
 package ru.practicum.shareit.booking;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDto;
@@ -16,11 +16,14 @@ import ru.practicum.shareit.user.dao.UserRepository;
 import java.util.Collection;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
-    private BookingRepository bookingRepository;
-    private ItemRepository itemRepository;
-    private UserRepository userRepository;
+    private final BookingRepository bookingRepository;
+    private final ItemRepository itemRepository;
+    private final UserRepository userRepository;
+
+    private final String messageIsOverlaps =
+            "К сожалению, бронирование невозможно: товар уже забронирован на это время.";
 
     @Override
     public BookingDto createBooking(BookingDto bookingDto) {
@@ -29,7 +32,7 @@ public class BookingServiceImpl implements BookingService {
         Booking bookingForAdd = BookingMapper.toBooking(bookingDto, item, booker);
 
         if (isTimeOverlaps(bookingForAdd)) {
-            throw new ValidationException("К сожалению, бронирование невозможно: товар уже забронирован на это время");
+            throw new ValidationException(messageIsOverlaps);
         }
 
         Booking booking = bookingRepository.createBooking(bookingForAdd);
@@ -50,7 +53,6 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingDto> getAllBookingsByItemId(long itemId) {
-        itemRepository.getItemById(itemId);
         return bookingRepository.getAllBookingsByItemId(itemId).stream()
                 .map(BookingMapper::toBookingDto)
                 .toList();
@@ -59,6 +61,11 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Collection<BookingDto> getAllBookingsByItemIdAndStatus(long itemId, BookingStatus bookingStatus) {
         itemRepository.getItemById(itemId);
+        
+        if (bookingStatus == null) {
+            return getAllBookingsByItemId(itemId);
+        }
+
         return bookingRepository.getAllBookingsByItemIdAndStatus(itemId, bookingStatus).stream()
                 .map(BookingMapper::toBookingDto)
                 .toList();
@@ -66,6 +73,10 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingDto> getAllBookingsByStatus(BookingStatus bookingStatus) {
+        if (bookingStatus == null) {
+            return getAllBookings();
+        }
+
         return bookingRepository.getAllBookingsByStatus(bookingStatus).stream()
                 .map(BookingMapper::toBookingDto)
                 .toList();

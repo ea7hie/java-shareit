@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user.dao;
 
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.exception.model.IsNotUniqueEmailException;
 import ru.practicum.shareit.exception.model.NotFoundException;
 import ru.practicum.shareit.user.User;
@@ -16,10 +17,13 @@ public class UserRepositoryImpl implements UserRepository {
     private final Map<Long, User> allUsersById = new HashMap<>();
     private long id = 0;
 
+    private final String messageDontUniqueEmailInCreating = "Используйте другой email для регистрации.";
+    private final String messageDontUniqueEmailInUpdating = "Используйте другой email для обновления текущего email.";
+
     @Override
     public User createUser(User user) {
         if (isEmailUsedAlready(user.getEmail())) {
-            throw new IsNotUniqueEmailException("Используйте другой email для регистрации.");
+            throw new IsNotUniqueEmailException(messageDontUniqueEmailInCreating);
         }
         user.setId(getNewId());
         allUsersById.put(user.getId(), user);
@@ -28,7 +32,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User getUserByID(long userId) {
-        return getUserOrThrow(userId, "отображения");
+        return getUserOrThrow(userId, Actions.TO_VIEW);
     }
 
     @Override
@@ -38,10 +42,10 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User updateUser(UserDto userDto) {
-        User userForUpdate = getUserOrThrow(userDto.getId(), "обновления");
+        User userForUpdate = getUserOrThrow(userDto.getId(), Actions.TO_UPDATE);
 
         if (isEmailUsedAlready(userDto.getEmail())) {
-            throw new IsNotUniqueEmailException("Используйте другой email для обновления текущего email.");
+            throw new IsNotUniqueEmailException(messageDontUniqueEmailInUpdating);
         }
 
         userForUpdate.setName(userDto.getName() == null ? userForUpdate.getName() : userDto.getName());
@@ -52,7 +56,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User deleteUser(long userId) {
-        getUserOrThrow(userId, "удаления");
+        getUserOrThrow(userId, Actions.TO_DELETE);
         return allUsersById.remove(userId);
     }
 

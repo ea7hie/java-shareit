@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item.dao;
 
 import org.springframework.stereotype.Repository;
+import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.exception.model.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
@@ -29,7 +30,7 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     @Override
     public Item getItemById(long itemId) {
-        return getItemOrThrow(itemId, "отображения");
+        return getItemOrThrow(itemId, Actions.TO_VIEW);
     }
 
     @Override
@@ -58,7 +59,7 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     @Override
     public Item updateItem(ItemDto itemDto) {
-        Item itemForUpdate = getItemOrThrow(itemDto.getId(), "обновления");
+        Item itemForUpdate = getItemOrThrow(itemDto.getId(), Actions.TO_UPDATE);
 
         itemForUpdate.setName(itemDto.getName() == null ? itemForUpdate.getName() : itemDto.getName());
         itemForUpdate.setDescription(itemDto.getDescription() == null ? itemForUpdate.getDescription()
@@ -71,7 +72,7 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     @Override
     public Item deleteItemById(long itemId) {
-        getItemOrThrow(itemId, "удаления");
+        getItemOrThrow(itemId, Actions.TO_DELETE);
         return allItemsById.remove(itemId);
     }
 

@@ -1,7 +1,7 @@
 package ru.practicum.shareit.booking;
 
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.BookingStatus;
@@ -12,10 +12,12 @@ import java.util.Collection;
  * TODO Sprint add-bookings.
  */
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RequestMapping(path = "/bookings")
 public class BookingController {
-    private BookingService bookingService;
+    private final BookingService bookingService;
+    private final String headerOfUserId = "X-Sharer-User-Id";
+
 
     @PostMapping
     public BookingDto createBooking(@Valid @RequestBody BookingDto bookingDto) {
@@ -23,8 +25,8 @@ public class BookingController {
     }
 
     @GetMapping
-    public Collection<BookingDto> getAllBookings() {
-        return bookingService.getAllBookings();
+    public Collection<BookingDto> getAllBookingsByStatus(@RequestParam(required = false) BookingStatus status) {
+        return bookingService.getAllBookingsByStatus(status);
     }
 
     @GetMapping("/{bookingId}")
@@ -33,19 +35,9 @@ public class BookingController {
     }
 
     @GetMapping("/item/{itemId}")
-    public Collection<BookingDto> getAllBookingsByItemId(@PathVariable long itemId) {
-        return bookingService.getAllBookingsByItemId(itemId);
-    }
-
-    @GetMapping("/item/{itemId}?status={bookingStatus}")
     public Collection<BookingDto> getAllBookingsByItemIdAndStatus(@PathVariable long itemId,
-                                                                  @RequestParam BookingStatus bookingStatus) {
-        return bookingService.getAllBookingsByItemIdAndStatus(itemId, bookingStatus);
-    }
-
-    @GetMapping("?status={bookingStatus}")
-    public Collection<BookingDto> getAllBookingsByStatus(@RequestParam BookingStatus bookingStatus) {
-        return bookingService.getAllBookingsByStatus(bookingStatus);
+                                                                  @RequestParam(required = false) BookingStatus status) {
+        return bookingService.getAllBookingsByItemIdAndStatus(itemId, status);
     }
 
     @GetMapping("/booker/{bookerId}")
@@ -59,14 +51,14 @@ public class BookingController {
     }
 
     @PatchMapping("/{bookingId}")
-    public BookingDto updateBooking(@RequestBody BookingDto booking, @RequestHeader("X-Sharer-User-Id") long userId,
+    public BookingDto updateBooking(@RequestBody BookingDto booking, @RequestHeader(headerOfUserId) long userId,
                                     @PathVariable long bookingId) {
         booking.setId(bookingId);
         return bookingService.updateBooking(booking, userId);
     }
 
     @DeleteMapping("/{bookingId}")
-    public BookingDto deleteBooking(@PathVariable long bookingId, @RequestHeader("X-Sharer-User-Id") long userId) {
+    public BookingDto deleteBooking(@PathVariable long bookingId, @RequestHeader(headerOfUserId) long userId) {
         return bookingService.deleteBooking(bookingId, userId);
     }
 }
