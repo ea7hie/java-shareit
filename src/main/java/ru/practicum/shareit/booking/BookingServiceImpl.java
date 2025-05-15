@@ -61,7 +61,6 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Collection<BookingDto> getAllBookingsByItemIdAndStatus(long itemId, BookingStatus bookingStatus) {
         itemRepository.getItemById(itemId);
-        
         if (bookingStatus == null) {
             return getAllBookingsByItemId(itemId);
         }
