@@ -13,7 +13,7 @@ public interface RequestService {
 
     Collection<ItemRequestDto> getAllItemRequestsFromRequester(long requesterId);
 
-    ItemRequestDto updateItemRequest(ItemRequestDto itemRequestDtoForUpdate, long userId);
+    ItemRequestDto updateItemRequest(ItemRequestDto itemRequestDtoForUpdate, long userId, long itemReqId);
 
     ItemRequestDto deleteItemRequest(long itemRequestIdForDelete, long userId);
 }

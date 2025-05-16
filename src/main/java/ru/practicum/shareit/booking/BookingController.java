@@ -53,8 +53,7 @@ public class BookingController {
     @PatchMapping("/{bookingId}")
     public BookingDto updateBooking(@RequestBody BookingDto booking, @RequestHeader(headerOfUserId) long userId,
                                     @PathVariable long bookingId) {
-        booking.setId(bookingId);
-        return bookingService.updateBooking(booking, userId);
+        return bookingService.updateBooking(booking, userId, bookingId);
     }
 
     @DeleteMapping("/{bookingId}")

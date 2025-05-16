@@ -45,8 +45,9 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public ItemRequestDto updateItemRequest(ItemRequestDto itemRequestDtoForUpdate, long userId) {
+    public ItemRequestDto updateItemRequest(ItemRequestDto itemRequestDtoForUpdate, long userId, long itemReqId) {
         userRepository.getUserByID(userId);
+        itemRequestDtoForUpdate.setId(itemReqId);
         return ItemRequestMapper.toItemRequestDto(requestRepository.updateItemRequest(itemRequestDtoForUpdate, userId));
     }
 

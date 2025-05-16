@@ -98,8 +98,9 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public BookingDto updateBooking(BookingDto bookingDtoForUpdate, long userId) {
+    public BookingDto updateBooking(BookingDto bookingDtoForUpdate, long userId, long bookingId) {
         userRepository.getUserByID(userId);
+        bookingDtoForUpdate.setId(bookingId);
         return BookingMapper.toBookingDto(bookingRepository.updateBooking(bookingDtoForUpdate, userId));
     }
 

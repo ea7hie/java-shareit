@@ -45,8 +45,7 @@ public class ItemController {
     @PatchMapping("/{idOfItem}")
     public ItemDto updateItem(@RequestBody ItemDto itemDto, @RequestHeader(headerOfUserId) long ownerId,
                               @PathVariable long idOfItem) {
-        itemDto.setId(idOfItem);
-        return itemService.updateItem(itemDto, ownerId);
+        return itemService.updateItem(itemDto, ownerId, idOfItem);
     }
 
     @DeleteMapping("/{idOfItem}")

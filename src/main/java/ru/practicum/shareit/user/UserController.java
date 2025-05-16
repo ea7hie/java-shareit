@@ -33,8 +33,7 @@ public class UserController {
 
     @PatchMapping("/{idOfUser}")
     public UserDto updateUser(@RequestBody UserDto userDto, @PathVariable long idOfUser) {
-        userDto.setId(idOfUser);
-        return userService.updateUser(userDto);
+        return userService.updateUser(userDto, idOfUser);
     }
 
     @DeleteMapping("/{idOfUser}")

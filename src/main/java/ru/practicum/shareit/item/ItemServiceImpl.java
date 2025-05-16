@@ -74,8 +74,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto updateItem(ItemDto itemDto, long ownerId) {
+    public ItemDto updateItem(ItemDto itemDto, long ownerId, long idOfItem) {
         userRepository.getUserByID(ownerId);
+        itemDto.setId(idOfItem);
         Item itemById = itemRepository.getItemById(itemDto.getId());
         if (itemById.getOwner().getId() == ownerId) {
             return ItemMapper.toItemDto(itemRepository.updateItem(itemDto));

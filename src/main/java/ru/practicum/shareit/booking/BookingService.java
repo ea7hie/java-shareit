@@ -23,7 +23,7 @@ public interface BookingService {
 
     Collection<BookingDto> getAllBookingsToOwner(long ownerId);
 
-    BookingDto updateBooking(BookingDto bookingForUpdate, long userId);
+    BookingDto updateBooking(BookingDto bookingForUpdate, long userId, long bookingId);
 
     BookingDto deleteBooking(long bookingIdForDelete, long userId);
 

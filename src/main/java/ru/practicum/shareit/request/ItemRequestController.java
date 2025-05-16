@@ -41,8 +41,7 @@ public class ItemRequestController {
     @PatchMapping("/{itemReqId}")
     public ItemRequestDto updateItemRequest(ItemRequestDto itemRequestDtoForUpdate,
                                             long userId, @PathVariable long itemReqId) {
-        itemRequestDtoForUpdate.setId(itemReqId);
-        return requestService.updateItemRequest(itemRequestDtoForUpdate, userId);
+        return requestService.updateItemRequest(itemRequestDtoForUpdate, userId, itemReqId);
     }
 
     @DeleteMapping
