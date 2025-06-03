@@ -39,14 +39,14 @@ public class RequestRepositoryImpl implements RequestRepository {
     @Override
     public Collection<ItemRequest> getAllItemRequestsFromRequester(long requesterId) {
         return allItemRequestById.values().stream()
-                .filter(itemRequest -> itemRequest.getRequester().getId() == requesterId)
+                .filter(itemRequest -> itemRequest.getRequesterId() == requesterId)
                 .toList();
     }
 
     @Override
     public ItemRequest updateItemRequest(ItemRequestDto itemRequestDtoForUpdate, long userId) {
         ItemRequest itemReqForUpdate = getItemRequestOrThrow(itemRequestDtoForUpdate.getId(), Actions.TO_UPDATE);
-        if (itemReqForUpdate.getRequester().getId() == userId) {
+        if (itemReqForUpdate.getRequesterId() == userId) {
             itemReqForUpdate.setDescription(itemRequestDtoForUpdate.getDescription() == null ?
                     itemReqForUpdate.getDescription() : itemRequestDtoForUpdate.getDescription());
         } else {
@@ -59,7 +59,7 @@ public class RequestRepositoryImpl implements RequestRepository {
     @Override
     public ItemRequest deleteItemRequest(long itemRequestIdForDelete, long userId) {
         ItemRequest itemRequestForDelete = getItemRequestOrThrow(itemRequestIdForDelete, Actions.TO_DELETE);
-        if (itemRequestForDelete.getRequester().getId() != userId) {
+        if (itemRequestForDelete.getRequesterId() != userId) {
             throw new AccessError(messageCantDelete);
         }
         return allItemRequestById.remove(itemRequestIdForDelete);

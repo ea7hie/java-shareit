@@ -18,8 +18,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public ItemRequestDto createItemRequest(ItemRequestDto itemRequestDto, long userId) {
-        User user = userRepository.getUserByID(userId);
-        ItemRequest itemRequest = ItemRequestMapper.toItemRequest(itemRequestDto, user);
+        ItemRequest itemRequest = ItemRequestMapper.toItemRequest(itemRequestDto);
         return ItemRequestMapper.toItemRequestDto(requestRepository.createItemRequest(itemRequest));
     }
 
