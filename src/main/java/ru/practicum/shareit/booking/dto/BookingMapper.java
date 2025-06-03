@@ -13,19 +13,19 @@ public class BookingMapper {
                 booking.getId(),
                 booking.getStart(),
                 booking.getEnd(),
-                booking.getItem().getId(),
-                booking.getBooker().getId(),
+                booking.getItemId(),
+                booking.getBookerId(),
                 booking.getStatus()
         );
     }
 
-    public Booking toBooking(BookingDto bookingDto, Item item, User booker) {
+    public Booking toBooking(BookingDto bookingDto) {
         return new Booking(
                 bookingDto.getId(),
                 bookingDto.getStart(),
                 bookingDto.getEnd(),
-                item,
-                booker,
+                bookingDto.getItemId(),
+                bookingDto.getBookerId(),
                 bookingDto.getStatus()
         );
     }

@@ -7,7 +7,6 @@ import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.util.Collection;
@@ -24,8 +23,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto createItem(ItemDto itemDto, long userId) {
-        User owner = userRepository.getUserByID(userId);
-        return ItemMapper.toItemDto(itemRepository.createItem(ItemMapper.toItem(itemDto, owner)));
+        return ItemMapper.toItemDto(itemRepository.createItem(ItemMapper.toItem(itemDto)));
     }
 
     @Override
@@ -78,7 +76,7 @@ public class ItemServiceImpl implements ItemService {
         userRepository.getUserByID(ownerId);
         itemDto.setId(idOfItem);
         Item itemById = itemRepository.getItemById(itemDto.getId());
-        if (itemById.getOwner().getId() == ownerId) {
+        if (itemById.getOwnerId() == ownerId) {
             return ItemMapper.toItemDto(itemRepository.updateItem(itemDto));
         }
         throw new AccessError(messageCantUpdate);
@@ -87,7 +85,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDto deleteItemById(long itemId, long ownerId) {
         userRepository.getUserByID(ownerId);
-        if (itemRepository.getItemById(itemId).getOwner().getId() == ownerId) {
+        if (itemRepository.getItemById(itemId).getOwnerId() == ownerId) {
             return ItemMapper.toItemDto(itemRepository.deleteItemById(itemId));
         }
         throw new AccessError(messageCantDelete);

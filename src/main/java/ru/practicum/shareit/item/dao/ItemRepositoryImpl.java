@@ -36,7 +36,7 @@ public class ItemRepositoryImpl implements ItemRepository {
     @Override
     public Collection<Item> getAllItemsByOwnerId(long userId) {
         return allItemsById.values().stream()
-                .filter(item -> item.getOwner().getId() == userId)
+                .filter(item -> item.getOwnerId() == userId)
                 .toList();
     }
 
@@ -51,7 +51,7 @@ public class ItemRepositoryImpl implements ItemRepository {
     @Override
     public Collection<Item> getAllItemsByOwnerIdAndSearch(long userId, String text) {
         return allItemsById.values().stream()
-                .filter(item -> item.getOwner().getId() == userId)
+                .filter(item -> item.getOwnerId() == userId)
                 .filter(item -> this.hasTextInDesc(item, text))
                 .filter(Item::isAvailable)
                 .toList();

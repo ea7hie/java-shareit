@@ -9,8 +9,6 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.exception.model.ValidationException;
 import ru.practicum.shareit.item.dao.ItemRepository;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.util.Collection;
@@ -27,9 +25,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto createBooking(BookingDto bookingDto) {
-        User booker = userRepository.getUserByID(bookingDto.getBookerId());
-        Item item = itemRepository.getItemById(bookingDto.getItemId());
-        Booking bookingForAdd = BookingMapper.toBooking(bookingDto, item, booker);
+        Booking bookingForAdd = BookingMapper.toBooking(bookingDto);
 
         if (isTimeOverlaps(bookingForAdd)) {
             throw new ValidationException(messageIsOverlaps);
@@ -113,7 +109,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public boolean isTimeOverlaps(Booking bookingForCheck) { //if true - то нельзя добавлять, есть пересечения!
         Collection<Booking> allApprovedBookingsByItemId = bookingRepository
-                .getAllBookingsByItemIdAndStatus(bookingForCheck.getItem().getId(), BookingStatus.APPROVED);
+                .getAllBookingsByItemIdAndStatus(bookingForCheck.getItemId(), BookingStatus.APPROVED);
 
         boolean isNotOverlap;
         for (Booking booking : allApprovedBookingsByItemId) {

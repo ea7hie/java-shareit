@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking.dao;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.Booking;
@@ -7,6 +8,8 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.exception.model.AccessError;
 import ru.practicum.shareit.exception.model.NotFoundException;
+import ru.practicum.shareit.item.dao.ItemRepository;
+import ru.practicum.shareit.item.model.Item;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -14,8 +17,11 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
+@RequiredArgsConstructor
 public class BookingRepositoryImpl implements BookingRepository {
     private final Map<Long, Booking> allBookingsById = new HashMap<>();
+
+    private final ItemRepository itemRepository;
     private long id = 0;
 
     private final String messageCantUpdate = "У вас нет прав доступа к редактированию этой брони.";
@@ -41,14 +47,14 @@ public class BookingRepositoryImpl implements BookingRepository {
     @Override
     public Collection<Booking> getAllBookingsByItemId(long itemId) {
         return allBookingsById.values().stream()
-                .filter(booking -> booking.getItem().getId() == itemId)
+                .filter(booking -> booking.getItemId() == itemId)
                 .toList();
     }
 
     @Override
     public Collection<Booking> getAllBookingsByItemIdAndStatus(long itemId, BookingStatus bookingStatus) {
         return allBookingsById.values().stream()
-                .filter(booking -> booking.getItem().getId() == itemId)
+                .filter(booking -> booking.getItemId() == itemId)
                 .filter(booking -> booking.getStatus() == bookingStatus)
                 .toList();
     }
@@ -63,27 +69,31 @@ public class BookingRepositoryImpl implements BookingRepository {
     @Override
     public Collection<Booking> getAllBookingsFromBooker(long bookerId) {
         return allBookingsById.values().stream()
-                .filter(booking -> booking.getBooker().getId() == bookerId)
+                .filter(booking -> booking.getBookerId() == bookerId)
                 .toList();
     }
 
     @Override
     public Collection<Booking> getAllBookingsToOwner(long ownerId) {
         return allBookingsById.values().stream()
-                .filter(booking -> booking.getItem().getOwner().getId() == ownerId)
+                .filter(booking -> {
+                    Item item = itemRepository.getItemById(booking.getItemId());
+                   return item.getOwnerId() == ownerId;
+                })
                 .toList();
     }
 
     @Override
     public Booking updateBooking(BookingDto bookingDtoForUpdate, long userId) {
         Booking bookingForUpdate = getBookingOrThrow(bookingDtoForUpdate.getId(), Actions.TO_UPDATE);
+        Item item = itemRepository.getItemById(bookingForUpdate.getItemId());
 
-        if (bookingForUpdate.getBooker().getId() == userId) {
+        if (bookingForUpdate.getBookerId() == userId) {
             bookingForUpdate.setStart(bookingDtoForUpdate.getStart() == null ?
                     bookingForUpdate.getStart() : bookingDtoForUpdate.getStart());
             bookingForUpdate.setEnd(bookingDtoForUpdate.getEnd() == null ?
                     bookingForUpdate.getEnd() : bookingDtoForUpdate.getEnd());
-        } else if (bookingForUpdate.getItem().getOwner().getId() == userId) {
+        } else if (item.getOwnerId() == userId) {
             bookingForUpdate.setStatus(bookingDtoForUpdate.getStatus() == null ?
                     bookingForUpdate.getStatus() : bookingDtoForUpdate.getStatus());
         } else {
@@ -96,7 +106,7 @@ public class BookingRepositoryImpl implements BookingRepository {
     @Override
     public Booking deleteBooking(long bookingIdForDelete, long userId) {
         Booking bookingForDelete = getBookingOrThrow(bookingIdForDelete, Actions.TO_DELETE);
-        if (bookingForDelete.getBooker().getId() == userId) {
+        if (bookingForDelete.getBookerId() == userId) {
             return allBookingsById.remove(bookingIdForDelete);
         }
         throw new AccessError(messageCantDelete);
