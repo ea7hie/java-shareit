@@ -9,6 +9,7 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.exception.model.ValidationException;
 import ru.practicum.shareit.item.dao.ItemRepository;
+import ru.practicum.shareit.user.UserChecks;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.util.Collection;
@@ -79,7 +80,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingDto> getAllBookingsFromBooker(long bookerId) {
-        userRepository.getUserByID(bookerId);
+        UserChecks.isUserExistsById(userRepository, bookerId);
         return bookingRepository.getAllBookingsFromBooker(bookerId).stream()
                 .map(BookingMapper::toBookingDto)
                 .toList();
@@ -87,7 +88,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingDto> getAllBookingsToOwner(long ownerId) {
-        userRepository.getUserByID(ownerId);
+        UserChecks.isUserExistsById(userRepository, ownerId);
         return bookingRepository.getAllBookingsToOwner(ownerId).stream()
                 .map(BookingMapper::toBookingDto)
                 .toList();
@@ -95,14 +96,14 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto updateBooking(BookingDto bookingDtoForUpdate, long userId, long bookingId) {
-        userRepository.getUserByID(userId);
+        UserChecks.isUserExistsById(userRepository, userId);
         bookingDtoForUpdate.setId(bookingId);
         return BookingMapper.toBookingDto(bookingRepository.updateBooking(bookingDtoForUpdate, userId));
     }
 
     @Override
     public BookingDto deleteBooking(long bookingDtoIdForDelete, long userId) {
-        userRepository.getUserByID(userId);
+        UserChecks.isUserExistsById(userRepository, userId);
         return BookingMapper.toBookingDto(bookingRepository.deleteBooking(bookingDtoIdForDelete, userId));
     }
 
@@ -123,4 +124,11 @@ public class BookingServiceImpl implements BookingService {
 
         return false;
     }
+
+    /*private void isItemExistsById(long itemId, String message) {
+        Optional<Item> optionalItem= itemRepository.findById(itemId);
+        if (optionalItem.isEmpty()) {
+            throw new NotFoundException(String.format("Пользователя с id = %d для %s не найдено", userId, message));
+        }
+    }*/
 }

@@ -7,6 +7,7 @@ import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.UserChecks;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.util.Collection;
@@ -40,7 +41,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemDto> getAllItemsByOwnerId(long userId) {
-        userRepository.getUserByID(userId);
+        UserChecks.isUserExistsById(userRepository, userId);
 
         return itemRepository.getAllItemsByOwnerId(userId).stream()
                 .map(ItemMapper::toItemDto)
@@ -64,7 +65,7 @@ public class ItemServiceImpl implements ItemService {
             return List.of();
         }
 
-        userRepository.getUserByID(userId);
+        UserChecks.isUserExistsById(userRepository, userId);
 
         return itemRepository.getAllItemsByOwnerIdAndSearch(userId, text).stream()
                 .map(ItemMapper::toItemDto)
@@ -73,7 +74,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto updateItem(ItemDto itemDto, long ownerId, long idOfItem) {
-        userRepository.getUserByID(ownerId);
+        UserChecks.isUserExistsById(userRepository, ownerId);
         itemDto.setId(idOfItem);
         Item itemById = itemRepository.getItemById(itemDto.getId());
         if (itemById.getOwnerId() == ownerId) {
@@ -84,7 +85,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDto deleteItemById(long itemId, long ownerId) {
-        userRepository.getUserByID(ownerId);
+        UserChecks.isUserExistsById(userRepository, ownerId);
         if (itemRepository.getItemById(itemId).getOwnerId() == ownerId) {
             return ItemMapper.toItemDto(itemRepository.deleteItemById(itemId));
         }
@@ -93,7 +94,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemDto> deleteAllItemsFromOwner(long userId) {
-        userRepository.getUserByID(userId);
+        UserChecks.isUserExistsById(userRepository, userId);
         return itemRepository.deleteAllItemsFromOwner(userId).stream()
                 .map(ItemMapper::toItemDto)
                 .toList();

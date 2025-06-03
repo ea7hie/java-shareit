@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.request.dao.RequestRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
-import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.UserChecks;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.util.Collection;
@@ -37,7 +37,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public Collection<ItemRequestDto> getAllItemRequestsFromRequester(long requesterId) {
-        userRepository.getUserByID(requesterId);
+        UserChecks.isUserExistsById(userRepository, requesterId);
         return requestRepository.getAllItemRequestsFromRequester(requesterId).stream()
                 .map(ItemRequestMapper::toItemRequestDto)
                 .toList();
@@ -45,14 +45,14 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public ItemRequestDto updateItemRequest(ItemRequestDto itemRequestDtoForUpdate, long userId, long itemReqId) {
-        userRepository.getUserByID(userId);
+        UserChecks.isUserExistsById(userRepository, userId);
         itemRequestDtoForUpdate.setId(itemReqId);
         return ItemRequestMapper.toItemRequestDto(requestRepository.updateItemRequest(itemRequestDtoForUpdate, userId));
     }
 
     @Override
     public ItemRequestDto deleteItemRequest(long itemRequestIdForDelete, long userId) {
-        userRepository.getUserByID(userId);
+        UserChecks.isUserExistsById(userRepository, userId);
         return ItemRequestMapper.toItemRequestDto(requestRepository.deleteItemRequest(itemRequestIdForDelete, userId));
 
     }
