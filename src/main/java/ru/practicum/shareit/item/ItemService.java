@@ -10,7 +10,7 @@ import java.util.Collection;
 public interface ItemService {
     ItemDto createItem(ItemDto itemDto, long userId);
 
-    ItemDtoForOwner getItemDtoById(long itemDtoId);
+    ItemDtoForOwner getItemDtoById(long itemDtoId, long ownerId);
 
     Collection<ItemDtoForOwner> getAllItemsByOwnerId(long userId);
 

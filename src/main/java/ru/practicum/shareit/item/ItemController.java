@@ -28,8 +28,8 @@ public class ItemController {
     }
 
     @GetMapping("/{idOfItem}")
-    public ItemDtoForOwner getItemById(@PathVariable long idOfItem) {
-        return itemService.getItemDtoById(idOfItem);
+    public ItemDtoForOwner getItemById(@PathVariable long idOfItem, @RequestHeader(headerOfUserId) long ownerId) {
+        return itemService.getItemDtoById(idOfItem, ownerId);
     }
 
     @GetMapping("/search")

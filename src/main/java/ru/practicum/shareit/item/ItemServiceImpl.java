@@ -50,9 +50,14 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDtoForOwner getItemDtoById(long itemDtoId) {
+    public ItemDtoForOwner getItemDtoById(long itemDtoId, long ownerId) {
         Item item = ItemChecks.getItemOrThrow(itemRepository, itemDtoId, Actions.TO_VIEW);
-        return getItemDtoForOwnerFromItem(item);
+        ItemDtoForOwner itemDtoForOwner = getItemDtoForOwnerFromItem(item);
+        if (item.getOwnerId() != ownerId) {
+            itemDtoForOwner.setLastBooking(null);
+            itemDtoForOwner.setNextBooking(null);
+        }
+        return itemDtoForOwner;
     }
 
     @Override
@@ -151,7 +156,7 @@ public class ItemServiceImpl implements ItemService {
         LocalDateTime now = LocalDateTime.now();
         Optional<Booking> optionalLastBooking = bookingRepository
                 .findFirstOneByItemIdAndStatusAndEndBeforeOrderByEndDesc(
-                item.getId(), BookingStatus.APPROVED, now.minusMinutes(1));
+                item.getId(), BookingStatus.APPROVED, now);
 
         Optional<Booking> optionalNextBooking = bookingRepository
                 .findFirstOneByItemIdAndStatusAndStartAfterOrderByStartAsc(
