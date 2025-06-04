@@ -5,13 +5,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.exception.model.IsNotUniqueEmailException;
-import ru.practicum.shareit.exception.model.NotFoundException;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 
 import java.util.Collection;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +23,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto createUser(UserDto userDto) {
-        if (isEmailUsedAlready(userDto.getEmail())) {
+        if (UserChecks.isEmailUsedAlready(userRepository, userDto.getEmail())) {
             throw new IsNotUniqueEmailException(messageDontUniqueEmailInCreating);
         }
         return UserMapper.toUserDto(userRepository.save(UserMapper.toUser(userDto)));
@@ -33,7 +31,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUserByID(long userDtoId) {
-        return UserMapper.toUserDto(getUserOrThrow(userDtoId, Actions.TO_VIEW));
+        return UserMapper.toUserDto(UserChecks.getUserOrThrow(userRepository, userDtoId, Actions.TO_VIEW));
     }
 
     @Override
@@ -46,10 +44,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto updateUser(UserDto userDto, long idOfUser) {
-        User userForUpdate = getUserOrThrow(idOfUser, Actions.TO_UPDATE);
+        User userForUpdate = UserChecks.getUserOrThrow(userRepository, idOfUser, Actions.TO_UPDATE);
 
         if (userDto.getEmail() != null && !userDto.getEmail().equals(userForUpdate.getEmail())) {
-            if (isEmailUsedAlready(userDto.getEmail())) {
+            if (UserChecks.isEmailUsedAlready(userRepository, userDto.getEmail())) {
                 throw new IsNotUniqueEmailException(messageDontUniqueEmailInUpdating);
             }
             userForUpdate.setEmail(userDto.getEmail());
@@ -64,20 +62,8 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public UserDto deleteUser(long userDtoId) {
-        User userForDelete = getUserOrThrow(userDtoId, Actions.TO_DELETE);
+        User userForDelete = UserChecks.getUserOrThrow(userRepository, userDtoId, Actions.TO_DELETE);
         userRepository.deleteById(userDtoId);
         return UserMapper.toUserDto(userForDelete);
-    }
-
-    private User getUserOrThrow(long userId, String message) {
-        Optional<User> optionalUser = userRepository.findById(userId);
-        if (optionalUser.isEmpty()) {
-            throw new NotFoundException(String.format("Пользователя с id = %d для %s не найдено", userId, message));
-        }
-        return optionalUser.get();
-    }
-
-    private boolean isEmailUsedAlready(String emailForCheck) {
-        return userRepository.existsByEmail(emailForCheck);
     }
 }
