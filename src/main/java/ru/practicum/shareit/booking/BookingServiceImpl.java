@@ -114,15 +114,14 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime now = LocalDateTime.now();
         Collection<Booking> foundedBookings = switch (state) {
             case ALL -> bookingRepository.findAllByBookerId(userId);
-            case CURRENT -> bookingRepository.findByBookerIdAndStartBeforeAndEndAfter(userId, now, now);
-            case PAST -> bookingRepository.findAllByBookerIdAndEndBefore(userId, now);
-            case FUTURE -> bookingRepository.findAllByBookerIdAndStartAfter(userId, now);
+            case CURRENT -> bookingRepository.findByBookerIdAndStartBeforeAndEndAfterOrderByStartAsc(userId, now, now);
+            case PAST -> bookingRepository.findAllByBookerIdAndEndBeforeOrderByEndDesc(userId, now);
+            case FUTURE -> bookingRepository.findAllByBookerIdAndStartAfterOrderByStartAsc(userId, now);
             case WAITING -> bookingRepository.findAllByBookerIdAndStatus(userId, BookingStatus.WAITING);
             case REJECTED -> bookingRepository.findAllByBookerIdAndStatus(userId, BookingStatus.REJECTED);
         };
 
         return foundedBookings.stream()
-                .sorted(new BookingComparatorByStartDesc())
                 .map(BookingMapper::toBookingDto)
                 .toList();
     }
@@ -142,15 +141,15 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime now = LocalDateTime.now();
         Collection<Booking> foundedBookings = switch (state) {
             case ALL -> bookingRepository.findAllByItemOwnerId(ownerId);
-            case CURRENT -> bookingRepository.findByItemOwnerIdAndStartBeforeAndEndAfter(ownerId, now, now);
-            case PAST -> bookingRepository.findAllByItemOwnerIdAndEndBefore(ownerId, now);
-            case FUTURE -> bookingRepository.findAllByItemOwnerIdAndStartAfter(ownerId, now);
+            case CURRENT -> bookingRepository.findByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartAsc(
+                    ownerId, now, now);
+            case PAST -> bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByEndDesc(ownerId, now);
+            case FUTURE -> bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartAsc(ownerId, now);
             case WAITING -> bookingRepository.findAllByItemOwnerIdAndStatus(ownerId, BookingStatus.WAITING);
             case REJECTED -> bookingRepository.findAllByItemOwnerIdAndStatus(ownerId, BookingStatus.REJECTED);
         };
 
         return foundedBookings.stream()
-                .sorted(new BookingComparatorByStartDesc())
                 .map(BookingMapper::toBookingDto)
                 .toList();
     }

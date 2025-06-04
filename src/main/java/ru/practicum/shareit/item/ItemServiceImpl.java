@@ -3,18 +3,26 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.dao.BookingRepository;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingMapper;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.exception.model.AccessError;
 import ru.practicum.shareit.item.dao.ItemChecks;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoForOwner;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.dao.UserChecks;
 import ru.practicum.shareit.user.dao.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +30,7 @@ import java.util.List;
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
 
     private final String messageCantDelete = "Удалять данные о вещи может только владелец.";
     private final String messageCantUpdate = "Редактировать данные о вещи может только владелец.";
@@ -35,23 +44,19 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemDto> getAllItemsDto() {
-        return itemRepository.findAll().stream()
-                .map(ItemMapper::toItemDto)
-                .toList();
+    public ItemDtoForOwner getItemDtoById(long itemDtoId) {
+        Item item = ItemChecks.getItemOrThrow(itemRepository, itemDtoId, Actions.TO_VIEW);
+        return getItemDtoForOwnerFromItem(item);
     }
 
     @Override
-    public ItemDto getItemDtoById(long itemDtoId) {
-        return ItemMapper.toItemDto(ItemChecks.getItemOrThrow(itemRepository, itemDtoId, Actions.TO_VIEW));
-    }
-
-    @Override
-    public Collection<ItemDto> getAllItemsByOwnerId(long userId) {
+    public Collection<ItemDtoForOwner> getAllItemsByOwnerId(long userId) {
         UserChecks.isUserExistsById(userRepository, userId);
 
-        return itemRepository.findAllByOwnerId(userId).stream()
-                .map(ItemMapper::toItemDto)
+        Collection<Item> allItemsByOwnerId = itemRepository.findAllByOwnerId(userId);
+
+        return allItemsByOwnerId.stream()
+                .map(this::getItemDtoForOwnerFromItem)
                 .toList();
     }
 
@@ -79,8 +84,6 @@ public class ItemServiceImpl implements ItemService {
         if (itemForUpdate.getOwnerId() != ownerId) {
             throw new AccessError(messageCantUpdate);
         }
-
-       // itemDto.setId(idOfItem);
 
         itemForUpdate.setName(itemDto.getName() == null ? itemForUpdate.getName() : itemDto.getName());
         itemForUpdate.setDescription(itemDto.getDescription() == null ? itemForUpdate.getDescription()
@@ -119,5 +122,17 @@ public class ItemServiceImpl implements ItemService {
         return allByOwnerId.stream()
                 .map(ItemMapper::toItemDto)
                 .toList();
+    }
+
+    private ItemDtoForOwner getItemDtoForOwnerFromItem(Item item) {
+        Optional<Booking> optionalLastBooking = bookingRepository.findFirstOneByItemIdAndStatusAndEndBeforeOrderByEndDesc(
+                item.getId(), BookingStatus.APPROVED, LocalDateTime.now());
+        Optional<Booking> optionalNextBooking = bookingRepository.findFirstOneByItemIdAndStatusAndStartAfterOrderByStartAsc(
+                item.getId(), BookingStatus.APPROVED, LocalDateTime.now());
+
+        BookingDto lastBookingDto = optionalLastBooking.map(BookingMapper::toBookingDto).orElse(null);
+        BookingDto nextBookingDto = optionalNextBooking.map(BookingMapper::toBookingDto).orElse(null);
+
+        return ItemMapper.toItemDtoForOwner(item, lastBookingDto, nextBookingDto);
     }
 }

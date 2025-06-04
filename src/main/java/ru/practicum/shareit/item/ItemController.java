@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoForOwner;
 
 import java.util.Collection;
 
@@ -20,12 +21,12 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> getItemByOwnerId(@RequestHeader(headerOfUserId) long userId) {
+    public Collection<ItemDtoForOwner> getItemByOwnerId(@RequestHeader(headerOfUserId) long userId) {
         return itemService.getAllItemsByOwnerId(userId);
     }
 
     @GetMapping("/{idOfItem}")
-    public ItemDto getItemById(@PathVariable long idOfItem) {
+    public ItemDtoForOwner getItemById(@PathVariable long idOfItem) {
         return itemService.getItemDtoById(idOfItem);
     }
 

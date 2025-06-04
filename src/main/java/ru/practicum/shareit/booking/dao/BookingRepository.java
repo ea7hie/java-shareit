@@ -9,31 +9,40 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     Collection<Booking> findAllByItemId(long itemId);
 
     Collection<Booking> findAllByItemIdAndStatus(long itemId, BookingStatus status);
 
-    Collection<Booking> findAllByBookerIdAndStatus(long bookerId, BookingStatus status);
-
     Collection<Booking> findAllByBookerId(long bookerId);
 
-    Collection<Booking> findAllByBookerIdAndEndBefore(long bookerId, LocalDateTime start);
+    Collection<Booking> findAllByBookerIdAndStatus(long bookerId, BookingStatus status);
 
-    Collection<Booking> findAllByBookerIdAndStartAfter(long bookerId, LocalDateTime end);
+    Collection<Booking> findAllByBookerIdAndEndBeforeOrderByEndDesc(long bookerId, LocalDateTime start);
 
-    Collection<Booking> findByBookerIdAndStartBeforeAndEndAfter(long bookerId, LocalDateTime start, LocalDateTime end);
+    Collection<Booking> findAllByBookerIdAndStartAfterOrderByStartAsc(long bookerId, LocalDateTime end);
 
-    Collection<Booking> findAllByItemOwnerIdAndStatus(long ownerId, BookingStatus status);
+    Collection<Booking> findByBookerIdAndStartBeforeAndEndAfterOrderByStartAsc(long bookerId, LocalDateTime start,
+                                                                               LocalDateTime end);
 
     Collection<Booking> findAllByItemOwnerId(long ownerId);
 
-    Collection<Booking> findAllByItemOwnerIdAndEndBefore(long ownerId, LocalDateTime start);
+    Collection<Booking> findAllByItemOwnerIdAndStatus(long ownerId, BookingStatus status);
 
-    Collection<Booking> findAllByItemOwnerIdAndStartAfter(long ownerId, LocalDateTime end);
+    Collection<Booking> findAllByItemOwnerIdAndEndBeforeOrderByEndDesc(long ownerId, LocalDateTime start);
 
-    Collection<Booking> findByItemOwnerIdAndStartBeforeAndEndAfter(long ownerId, LocalDateTime start, LocalDateTime end);
+    Collection<Booking> findAllByItemOwnerIdAndStartAfterOrderByStartAsc(long ownerId, LocalDateTime end);
+
+    Collection<Booking> findByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartAsc(long ownerId, LocalDateTime start,
+                                                                                  LocalDateTime end);
+
+    Optional<Booking> findFirstOneByItemIdAndStatusAndEndBeforeOrderByEndDesc(long itemId, BookingStatus status,
+                                                                             LocalDateTime end);
+
+    Optional<Booking> findFirstOneByItemIdAndStatusAndStartAfterOrderByStartAsc(long itemId, BookingStatus status,
+                                                                      LocalDateTime end);
 
     @Modifying
     @Query("UPDATE Booking b SET b.status = :status WHERE b.id = :bookingId")
