@@ -10,12 +10,15 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.exception.model.AccessError;
+import ru.practicum.shareit.exception.model.ValidationException;
+import ru.practicum.shareit.item.comment.*;
 import ru.practicum.shareit.item.dao.ItemChecks;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoForOwner;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserChecks;
 import ru.practicum.shareit.user.dao.UserRepository;
 
@@ -31,7 +34,9 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
+    private final CommentRepository commentRepository;
 
+    private final String messageCantCommented = "Оставлять отзывы могут только пользователи, которые пользовались им.";
     private final String messageCantDelete = "Удалять данные о вещи может только владелец.";
     private final String messageCantUpdate = "Редактировать данные о вещи может только владелец.";
 
@@ -40,7 +45,8 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto createItem(ItemDto itemDto, long userId) {
         UserChecks.isUserExistsById(userRepository, userId);
         itemDto.setOwnerId(userId);
-        return ItemMapper.toItemDto(itemRepository.save(ItemMapper.toItem(itemDto)));
+        Item itemForSave = itemRepository.save(ItemMapper.toItem(itemDto));
+        return ItemMapper.toItemDto(itemForSave, getCommentsByItemId(itemForSave.getId()));
     }
 
     @Override
@@ -70,7 +76,7 @@ public class ItemServiceImpl implements ItemService {
                 .findByDescriptionContainsIgnoreCaseAndIsAvailableIsTrueOrNameContainsIgnoreCaseAndIsAvailableIsTrue(
                         text, text)
                 .stream()
-                .map(ItemMapper::toItemDto)
+                .map(item -> ItemMapper.toItemDto(item, getCommentsByItemId(item.getId())))
                 .toList();
     }
 
@@ -94,7 +100,7 @@ public class ItemServiceImpl implements ItemService {
         itemRepository.updateItem(idOfItem, itemForUpdate.getName(), itemForUpdate.getDescription(),
                 itemForUpdate.isAvailable());
 
-        return ItemMapper.toItemDto(itemForUpdate);
+        return ItemMapper.toItemDto(itemForUpdate, getCommentsByItemId(idOfItem));
     }
 
     @Override
@@ -105,7 +111,7 @@ public class ItemServiceImpl implements ItemService {
         Item itemForDelete = ItemChecks.getItemOrThrow(itemRepository, itemId, Actions.TO_DELETE);
         if (itemForDelete.getOwnerId() == ownerId) {
             itemRepository.deleteById(itemId);
-            return ItemMapper.toItemDto(itemForDelete);
+            return ItemMapper.toItemDto(itemForDelete, getCommentsByItemId(itemId));
         }
         throw new AccessError(messageCantDelete);
     }
@@ -120,19 +126,46 @@ public class ItemServiceImpl implements ItemService {
         itemRepository.deleteAllItemsFromOwner(userId);
 
         return allByOwnerId.stream()
-                .map(ItemMapper::toItemDto)
+                .map(item -> ItemMapper.toItemDto(item, getCommentsByItemId(item.getId())))
                 .toList();
     }
 
+    @Override
+    @Transactional
+    public CommentDto createNewComment(CommentDtoForCreate commentDtoForCreate, long authorId, long itemId) {
+        Item item = ItemChecks.getItemOrThrow(itemRepository, itemId, Actions.TO_VIEW);
+        User author = UserChecks.getUserOrThrow(userRepository, authorId, Actions.TO_VIEW);
+
+        boolean hasBooking = bookingRepository.existsByItemIdAndBookerIdAndStatusAndEndBefore(itemId, authorId,
+                BookingStatus.APPROVED, LocalDateTime.now());
+        if (hasBooking) {
+            Comment comment = commentRepository.save(new Comment(-1L, commentDtoForCreate.getText(),
+                    author, item, LocalDateTime.now()));
+            return CommentMapper.toCommentDto(comment);
+        }
+
+        throw new ValidationException(messageCantCommented);
+    }
+
     private ItemDtoForOwner getItemDtoForOwnerFromItem(Item item) {
-        Optional<Booking> optionalLastBooking = bookingRepository.findFirstOneByItemIdAndStatusAndEndBeforeOrderByEndDesc(
-                item.getId(), BookingStatus.APPROVED, LocalDateTime.now());
-        Optional<Booking> optionalNextBooking = bookingRepository.findFirstOneByItemIdAndStatusAndStartAfterOrderByStartAsc(
-                item.getId(), BookingStatus.APPROVED, LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        Optional<Booking> optionalLastBooking = bookingRepository
+                .findFirstOneByItemIdAndStatusAndEndBeforeOrderByEndDesc(
+                item.getId(), BookingStatus.APPROVED, now.minusMinutes(1));
+
+        Optional<Booking> optionalNextBooking = bookingRepository
+                .findFirstOneByItemIdAndStatusAndStartAfterOrderByStartAsc(
+                item.getId(), BookingStatus.APPROVED, now);
 
         BookingDto lastBookingDto = optionalLastBooking.map(BookingMapper::toBookingDto).orElse(null);
         BookingDto nextBookingDto = optionalNextBooking.map(BookingMapper::toBookingDto).orElse(null);
 
-        return ItemMapper.toItemDtoForOwner(item, lastBookingDto, nextBookingDto);
+        return ItemMapper.toItemDtoForOwner(item, lastBookingDto, nextBookingDto, getCommentsByItemId(item.getId()));
+    }
+
+    private List<CommentDto> getCommentsByItemId(long itemId) {
+        return commentRepository.findAllByItemId(itemId).stream()
+                .map(CommentMapper::toCommentDto)
+                .toList();
     }
 }

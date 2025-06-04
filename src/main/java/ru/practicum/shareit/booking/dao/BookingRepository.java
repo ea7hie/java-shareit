@@ -39,10 +39,13 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
                                                                                   LocalDateTime end);
 
     Optional<Booking> findFirstOneByItemIdAndStatusAndEndBeforeOrderByEndDesc(long itemId, BookingStatus status,
-                                                                             LocalDateTime end);
+                                                                              LocalDateTime end);
 
     Optional<Booking> findFirstOneByItemIdAndStatusAndStartAfterOrderByStartAsc(long itemId, BookingStatus status,
-                                                                      LocalDateTime end);
+                                                                                LocalDateTime start);
+
+    boolean existsByItemIdAndBookerIdAndStatusAndEndBefore(long itemId, long bookerId, BookingStatus status,
+                                                           LocalDateTime end);
 
     @Modifying
     @Query("UPDATE Booking b SET b.status = :status WHERE b.id = :bookingId")

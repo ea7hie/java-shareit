@@ -1,5 +1,7 @@
 package ru.practicum.shareit.item;
 
+import ru.practicum.shareit.item.comment.CommentDto;
+import ru.practicum.shareit.item.comment.CommentDtoForCreate;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoForOwner;
 
@@ -19,4 +21,6 @@ public interface ItemService {
     ItemDto deleteItemById(long itemId, long ownerId);
 
     Collection<ItemDto> deleteAllItemsFromOwner(long userId);
+
+    CommentDto createNewComment(CommentDtoForCreate commentDtoForCreate, long authorId, long itemId);
 }
