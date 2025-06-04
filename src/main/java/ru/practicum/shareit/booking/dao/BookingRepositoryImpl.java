@@ -8,6 +8,7 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.exception.model.AccessError;
 import ru.practicum.shareit.exception.model.NotFoundException;
+import ru.practicum.shareit.item.dao.ItemChecks;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 
@@ -77,8 +78,8 @@ public class BookingRepositoryImpl implements BookingRepository {
     public Collection<Booking> getAllBookingsToOwner(long ownerId) {
         return allBookingsById.values().stream()
                 .filter(booking -> {
-                    Item item = itemRepository.getItemById(booking.getItemId());
-                   return item.getOwnerId() == ownerId;
+                    Item item = ItemChecks.getItemOrThrow(itemRepository, booking.getItemId(), Actions.TO_VIEW);
+                    return item.getOwnerId() == ownerId;
                 })
                 .toList();
     }
@@ -86,7 +87,7 @@ public class BookingRepositoryImpl implements BookingRepository {
     @Override
     public Booking updateBooking(BookingDto bookingDtoForUpdate, long userId) {
         Booking bookingForUpdate = getBookingOrThrow(bookingDtoForUpdate.getId(), Actions.TO_UPDATE);
-        Item item = itemRepository.getItemById(bookingForUpdate.getItemId());
+        Item item = ItemChecks.getItemOrThrow(itemRepository, bookingDtoForUpdate.getItemId(), Actions.TO_UPDATE);
 
         if (bookingForUpdate.getBookerId() == userId) {
             bookingForUpdate.setStart(bookingDtoForUpdate.getStart() == null ?

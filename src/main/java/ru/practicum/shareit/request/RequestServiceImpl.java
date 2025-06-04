@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.request.dao.RequestRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
-import ru.practicum.shareit.user.UserChecks;
+import ru.practicum.shareit.user.dao.UserChecks;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.util.Collection;

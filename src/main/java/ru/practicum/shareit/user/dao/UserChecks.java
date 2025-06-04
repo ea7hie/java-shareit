@@ -1,9 +1,9 @@
-package ru.practicum.shareit.user;
+package ru.practicum.shareit.user.dao;
 
 import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.exception.model.NotFoundException;
-import ru.practicum.shareit.user.dao.UserRepository;
+import ru.practicum.shareit.user.User;
 
 import java.util.Optional;
 

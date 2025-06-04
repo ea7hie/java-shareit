@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.exception.model.IsNotUniqueEmailException;
+import ru.practicum.shareit.user.dao.UserChecks;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;

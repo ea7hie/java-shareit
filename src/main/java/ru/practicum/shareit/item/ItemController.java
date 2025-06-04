@@ -34,11 +34,6 @@ public class ItemController {
         return itemService.getAllItemBySearch(text.trim());
     }
 
-    @GetMapping("/owner/{ownerId}/search")
-    public Collection<ItemDto> getItemBySearch(@PathVariable long ownerId, @RequestParam String text) {
-        return itemService.getAllItemsByOwnerIdAndSearch(ownerId, text.trim());
-    }
-
     @PatchMapping("/{idOfItem}")
     public ItemDto updateItem(@RequestBody ItemDto itemDto, @RequestHeader(headerOfUserId) long ownerId,
                               @PathVariable long idOfItem) {

@@ -8,8 +8,9 @@ import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.exception.model.ValidationException;
+import ru.practicum.shareit.item.dao.ItemChecks;
 import ru.practicum.shareit.item.dao.ItemRepository;
-import ru.practicum.shareit.user.UserChecks;
+import ru.practicum.shareit.user.dao.UserChecks;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.util.Collection;
@@ -57,7 +58,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingDto> getAllBookingsByItemIdAndStatus(long itemId, BookingStatus bookingStatus) {
-        itemRepository.getItemById(itemId);
+        ItemChecks.isItemExistsById(itemRepository, itemId);
         if (bookingStatus == null) {
             return getAllBookingsByItemId(itemId);
         }

@@ -1,26 +1,28 @@
 package ru.practicum.shareit.item.dao;
 
-import ru.practicum.shareit.item.dto.ItemDto;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.Collection;
+import java.util.List;
 
-public interface ItemRepository {
-    Item createItem(Item item);
+public interface ItemRepository extends JpaRepository<Item, Long> {
+    Collection<Item> findAllByOwnerId(long ownerId);
 
-    Collection<Item> getAllItems();
+    List<Item> findByDescriptionContainsIgnoreCaseAndIsAvailableIsTrueOrNameContainsIgnoreCaseAndIsAvailableIsTrue(
+            String description, String name
+    );
 
-    Item getItemById(long itemId);
+    @Modifying
+    @Query("UPDATE Item i SET i.name = :name, i.description = :description, i.isAvailable = :isAvailable " +
+            "WHERE i.id = :itemId")
+    void updateItem(@Param("itemId") long itemId, @Param("name") String name, @Param("description") String description,
+                    @Param("isAvailable") Boolean isAvailable);
 
-    Collection<Item> getAllItemsByOwnerId(long userId);
-
-    Collection<Item> getAllItemBySearch(String text);
-
-    Collection<Item> getAllItemsByOwnerIdAndSearch(long userId, String text);
-
-    Item updateItem(ItemDto itemDto);
-
-    Item deleteItemById(long itemId);
-
-    Collection<Item> deleteAllItemsFromOwner(long userId);
+    @Modifying
+    @Query("DELETE Item i WHERE i.ownerId = :ownerId")
+    void deleteAllItemsFromOwner(@Param("ownerId") long ownerId);
 }
