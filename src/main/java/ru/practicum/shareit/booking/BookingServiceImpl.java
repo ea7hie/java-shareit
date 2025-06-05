@@ -67,8 +67,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public BookingDto getBookingById(long bookingId, long userId) {
         UserChecks.isUserExistsById(userRepository, userId);
-        Booking booking = BookingChecks.getBookingOrThrow(bookingRepository,
-                bookingId, Actions.TO_VIEW);
+        Booking booking = BookingChecks.getBookingOrThrow(bookingRepository, bookingId, Actions.TO_VIEW);
         Item item = ItemChecks.getItemOrThrow(itemRepository, booking.getItem().getId(), Actions.TO_VIEW);
 
         if (booking.getBooker().getId() == userId || item.getOwnerId() == userId) {
