@@ -52,12 +52,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public ItemDtoForOwner getItemDtoById(long itemDtoId, long ownerId) {
         Item item = ItemChecks.getItemOrThrow(itemRepository, itemDtoId, Actions.TO_VIEW);
-        ItemDtoForOwner itemDtoForOwner = getItemDtoForOwnerFromItem(item);
-        if (item.getOwnerId() != ownerId) {
-            itemDtoForOwner.setLastBooking(null);
-            itemDtoForOwner.setNextBooking(null);
-        }
-        return itemDtoForOwner;
+        return getItemDtoForOwnerFromItem(item, ownerId);
     }
 
     @Override
@@ -67,7 +62,7 @@ public class ItemServiceImpl implements ItemService {
         Collection<Item> allItemsByOwnerId = itemRepository.findAllByOwnerId(userId);
 
         return allItemsByOwnerId.stream()
-                .map(this::getItemDtoForOwnerFromItem)
+                .map(item -> getItemDtoForOwnerFromItem(item, userId))
                 .toList();
     }
 
@@ -152,7 +147,11 @@ public class ItemServiceImpl implements ItemService {
         throw new ValidationException(messageCantCommented);
     }
 
-    private ItemDtoForOwner getItemDtoForOwnerFromItem(Item item) {
+    private ItemDtoForOwner getItemDtoForOwnerFromItem(Item item, long ownerId) {
+        if (item.getOwnerId() != ownerId) {
+            return ItemMapper.toItemDtoForOwner(item, null, null, getCommentsByItemId(item.getId()));
+        }
+
         LocalDateTime now = LocalDateTime.now();
         Optional<Booking> optionalLastBooking = bookingRepository
                 .findFirstOneByItemIdAndStatusAndEndBeforeOrderByEndDesc(
