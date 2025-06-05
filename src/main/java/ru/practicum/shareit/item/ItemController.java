@@ -3,13 +3,13 @@ package ru.practicum.shareit.item;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.comment.CommentDto;
+import ru.practicum.shareit.item.comment.CommentDtoForCreate;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoForOwner;
 
 import java.util.Collection;
 
-/**
- * TODO Sprint add-controllers.
- */
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
@@ -23,13 +23,13 @@ public class ItemController {
     }
 
     @GetMapping
-    public Collection<ItemDto> getItemByOwnerId(@RequestHeader(headerOfUserId) long userId) {
+    public Collection<ItemDtoForOwner> getItemByOwnerId(@RequestHeader(headerOfUserId) long userId) {
         return itemService.getAllItemsByOwnerId(userId);
     }
 
     @GetMapping("/{idOfItem}")
-    public ItemDto getItemById(@PathVariable long idOfItem) {
-        return itemService.getItemDtoById(idOfItem);
+    public ItemDtoForOwner getItemById(@PathVariable long idOfItem, @RequestHeader(headerOfUserId) long ownerId) {
+        return itemService.getItemDtoById(idOfItem, ownerId);
     }
 
     @GetMapping("/search")
@@ -37,15 +37,16 @@ public class ItemController {
         return itemService.getAllItemBySearch(text.trim());
     }
 
-    @GetMapping("/owner/{ownerId}/search")
-    public Collection<ItemDto> getItemBySearch(@PathVariable long ownerId, @RequestParam String text) {
-        return itemService.getAllItemsByOwnerIdAndSearch(ownerId, text.trim());
-    }
-
     @PatchMapping("/{idOfItem}")
     public ItemDto updateItem(@RequestBody ItemDto itemDto, @RequestHeader(headerOfUserId) long ownerId,
                               @PathVariable long idOfItem) {
         return itemService.updateItem(itemDto, ownerId, idOfItem);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto createNewComment(@RequestBody CommentDtoForCreate commentDtoForCreate,
+                                       @RequestHeader(headerOfUserId) long authorId, @PathVariable long itemId) {
+        return itemService.createNewComment(commentDtoForCreate, authorId, itemId);
     }
 
     @DeleteMapping("/{idOfItem}")
