@@ -117,16 +117,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     @Transactional
-    public Collection<ItemDto> deleteAllItemsFromOwner(long userId) {
+    public void deleteAllItemsFromOwner(long userId) {
         isUserExistsById(userId);
-
-        Collection<Item> allByOwnerId = itemRepository.findAllByOwnerId(userId);
-
         itemRepository.deleteAllItemsFromOwner(userId);
-
-        return allByOwnerId.stream()
-                .map(item -> ItemMapper.toItemDto(item, getCommentDtosByItemIdForItemDto(item.getId())))
-                .toList();
     }
 
     @Override

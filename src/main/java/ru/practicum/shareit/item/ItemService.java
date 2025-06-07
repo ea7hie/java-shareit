@@ -20,7 +20,7 @@ public interface ItemService {
 
     ItemDto deleteItemById(long itemId, long ownerId);
 
-    Collection<ItemDto> deleteAllItemsFromOwner(long userId);
+    void deleteAllItemsFromOwner(long userId);
 
     CommentDto createNewComment(CommentDtoForCreate commentDtoForCreate, long authorId, long itemId);
 }

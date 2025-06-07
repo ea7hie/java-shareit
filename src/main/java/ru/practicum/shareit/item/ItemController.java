@@ -55,7 +55,7 @@ public class ItemController {
     }
 
     @DeleteMapping
-    public Collection<ItemDto> deleteAllItemsByOwnerId(@RequestHeader(headerOfUserId) long ownerId) {
-        return itemService.deleteAllItemsFromOwner(ownerId);
+    public void deleteAllItemsByOwnerId(@RequestHeader(headerOfUserId) long ownerId) {
+        itemService.deleteAllItemsFromOwner(ownerId);
     }
 }
