@@ -4,14 +4,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.exception.model.AccessError;
-import ru.practicum.shareit.request.dao.RequestChecks;
+import ru.practicum.shareit.exception.model.NotFoundException;
 import ru.practicum.shareit.request.dao.RequestRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
-import ru.practicum.shareit.user.dao.UserChecks;
+import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.util.Collection;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +25,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public ItemRequestDto createItemRequest(ItemRequestDto itemRequestDto, long userId) {
-        UserChecks.isUserExistsById(userRepository, userId);
+        isUserExistsById(userId);
         ItemRequest itemRequest = ItemRequestMapper.toItemRequest(itemRequestDto);
         return ItemRequestMapper.toItemRequestDto(requestRepository.save(itemRequest));
     }
@@ -38,14 +39,13 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public ItemRequestDto getItemRequestById(long itemRequestId) {
-        return ItemRequestMapper.toItemRequestDto(RequestChecks.getItemRequestOrThrow(requestRepository,
-                itemRequestId, Actions.TO_VIEW));
+        return ItemRequestMapper.toItemRequestDto(getItemRequestOrThrow(itemRequestId, Actions.TO_VIEW));
 
     }
 
     @Override
     public Collection<ItemRequestDto> getAllItemRequestsFromRequester(long requesterId) {
-        UserChecks.isUserExistsById(userRepository, requesterId);
+        isUserExistsById(requesterId);
         return requestRepository.findAllByRequesterId(requesterId).stream()
                 .map(ItemRequestMapper::toItemRequestDto)
                 .toList();
@@ -53,8 +53,7 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public ItemRequestDto updateItemRequest(ItemRequestDto itemRequestDtoForUpdate, long userId, long itemReqId) {
-        ItemRequest itemReqForUpdate = RequestChecks.getItemRequestOrThrow(requestRepository,
-                itemReqId, Actions.TO_UPDATE);
+        ItemRequest itemReqForUpdate = getItemRequestOrThrow(itemReqId, Actions.TO_UPDATE);
 
         if (itemReqForUpdate.getRequesterId() == userId) {
             itemReqForUpdate.setDescription(itemRequestDtoForUpdate.getDescription() == null ?
@@ -68,13 +67,28 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public ItemRequestDto deleteItemRequest(long itemRequestIdForDelete, long userId) {
-        ItemRequest itemRequestForDelete = RequestChecks.getItemRequestOrThrow(requestRepository,
-                itemRequestIdForDelete, Actions.TO_DELETE);
+        ItemRequest itemRequestForDelete = getItemRequestOrThrow(itemRequestIdForDelete, Actions.TO_DELETE);
 
         if (itemRequestForDelete.getRequesterId() == userId) {
             requestRepository.deleteById(itemRequestIdForDelete);
             return ItemRequestMapper.toItemRequestDto(itemRequestForDelete);
         }
         throw new AccessError(messageCantDelete);
+    }
+
+    private ItemRequest getItemRequestOrThrow(long requestId, String message) {
+        Optional<ItemRequest> optionalItemRequest = requestRepository.findById(requestId);
+        if (optionalItemRequest.isEmpty()) {
+            throw new NotFoundException(String.format("Запроса с id = %d для %s не найдено", requestId, message));
+        }
+        return optionalItemRequest.get();
+    }
+
+    private void isUserExistsById(long userIdForCheck) {
+        Optional<User> optionalUser = userRepository.findById(userIdForCheck);
+        if (optionalUser.isEmpty()) {
+            throw new NotFoundException(String.format("Пользователя с id = %d для %s не найдено", userIdForCheck,
+                    Actions.TO_VIEW));
+        }
     }
 }

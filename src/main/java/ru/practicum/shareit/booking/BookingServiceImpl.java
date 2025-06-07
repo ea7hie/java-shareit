@@ -3,7 +3,6 @@ package ru.practicum.shareit.booking;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.dao.BookingChecks;
 import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoPost;
@@ -13,23 +12,23 @@ import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.enums.BookingDtoStates;
 import ru.practicum.shareit.exception.model.AccessError;
+import ru.practicum.shareit.exception.model.NotFoundException;
 import ru.practicum.shareit.exception.model.ValidationException;
 import ru.practicum.shareit.item.comment.CommentDto;
 import ru.practicum.shareit.item.comment.CommentMapper;
 import ru.practicum.shareit.item.comment.CommentRepository;
-import ru.practicum.shareit.item.dao.ItemChecks;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.dao.UserChecks;
 import ru.practicum.shareit.user.dao.UserRepository;
 import ru.practicum.shareit.user.dto.UserMapper;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -55,8 +54,8 @@ public class BookingServiceImpl implements BookingService {
                     "или совпадать с ней.");
         }
 
-        Item item = ItemChecks.getItemOrThrow(itemRepository, bookingDtoPost.getItemId(), Actions.TO_VIEW);
-        User booker = UserChecks.getUserOrThrow(userRepository, bookerId, Actions.TO_VIEW);
+        Item item = getItemOrThrow(bookingDtoPost.getItemId(), Actions.TO_VIEW);
+        User booker = getUserOrThrow(bookerId, Actions.TO_VIEW);
 
         if (!item.isAvailable()) {
             throw new ValidationException(messageIsOverlaps);
@@ -75,9 +74,9 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingDto getBookingById(long bookingId, long userId) {
-        UserChecks.isUserExistsById(userRepository, userId);
-        Booking booking = BookingChecks.getBookingOrThrow(bookingRepository, bookingId, Actions.TO_VIEW);
-        Item item = ItemChecks.getItemOrThrow(itemRepository, booking.getItem().getId(), Actions.TO_VIEW);
+        isUserExistsById(userId);
+        Booking booking = getBookingOrThrow(bookingRepository, bookingId, Actions.TO_VIEW);
+        Item item = getItemOrThrow(booking.getItem().getId(), Actions.TO_VIEW);
 
         if (booking.getBooker().getId() == userId || item.getOwnerId() == userId) {
             return BookingMapper.toBookingDto(booking, getCommentDtosByItemId(item.getId()));
@@ -95,7 +94,10 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingDto> getAllBookingsByItemIdAndStatus(long itemId, BookingStatus bookingStatus) {
-        ItemChecks.isItemExistsById(itemRepository, itemId);
+        if (!itemRepository.existsById(itemId)) {
+            throw new NotFoundException(String.format("Вещи с id = %d для %s не найдено", itemId, Actions.TO_VIEW));
+        }
+
         if (bookingStatus == null) {
             return getAllBookingsByItemId(itemId);
         }
@@ -107,7 +109,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingDto> getAllBookingsByStatus(long userId, BookingDtoStates state) {
-        UserChecks.isUserExistsById(userRepository, userId);
+        isUserExistsById(userId);
 
         if (state == null) {
             state = BookingDtoStates.ALL;
@@ -138,7 +140,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingDto> getAllBookingsFromBooker(long bookerId) {
-        UserChecks.isUserExistsById(userRepository, bookerId);
+        isUserExistsById(bookerId);
         return bookingRepository.findAllByBookerId(bookerId).stream()
                 .map(booking -> BookingMapper.toBookingDto(booking,
                         getCommentDtosByItemId(booking.getItem().getId())))
@@ -147,7 +149,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingDto> getAllBookingsByStatusForOwner(long ownerId, BookingDtoStates state) {
-        UserChecks.isUserExistsById(userRepository, ownerId);
+        isUserExistsById(ownerId);
 
         LocalDateTime now = LocalDateTime.now();
         Collection<Booking> foundedBookings = switch (state) {
@@ -169,9 +171,8 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto updateBooking(long bookingId, long userId, boolean approved) {
-        Booking bookingForUpdate = BookingChecks.getBookingOrThrow(bookingRepository,
-                bookingId, Actions.TO_UPDATE);
-        Item item = ItemChecks.getItemOrThrow(itemRepository, bookingForUpdate.getItem().getId(), Actions.TO_UPDATE);
+        Booking bookingForUpdate = getBookingOrThrow(bookingRepository, bookingId, Actions.TO_UPDATE);
+        Item item = getItemOrThrow(bookingForUpdate.getItem().getId(), Actions.TO_UPDATE);
 
         if (item.getOwnerId() == userId) {
             bookingForUpdate.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
@@ -186,9 +187,8 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto deleteBooking(long bookingDtoIdForDelete, long userId) {
-        UserChecks.isUserExistsById(userRepository, userId);
-        Booking bookingForDelete = BookingChecks.getBookingOrThrow(bookingRepository,
-                bookingDtoIdForDelete, Actions.TO_DELETE);
+        isUserExistsById(userId);
+        Booking bookingForDelete = getBookingOrThrow(bookingRepository, bookingDtoIdForDelete, Actions.TO_DELETE);
 
         if (bookingForDelete.getBooker().getId() != userId) {
             throw new AccessError(messageCantDelete);
@@ -221,5 +221,37 @@ public class BookingServiceImpl implements BookingService {
         return commentRepository.findAllByItemId(itemId).stream()
                 .map(CommentMapper::toCommentDto)
                 .toList();
+    }
+
+    private Booking getBookingOrThrow(BookingRepository bookingRepository, long bookingId, String message) {
+        Optional<Booking> optionalBooking = bookingRepository.findById(bookingId);
+        if (optionalBooking.isEmpty()) {
+            throw new NotFoundException(String.format("Бронирования с id = %d для %s не найдено", bookingId, message));
+        }
+        return optionalBooking.get();
+    }
+
+    private Item getItemOrThrow(long itemId, String message) {
+        Optional<Item> optionalItem = itemRepository.findById(itemId);
+        if (optionalItem.isEmpty()) {
+            throw new NotFoundException(String.format("Вещи с id = %d для %s не найдено", itemId, message));
+        }
+        return optionalItem.get();
+    }
+
+    private void isUserExistsById(long userIdForCheck) {
+        Optional<User> optionalUser = userRepository.findById(userIdForCheck);
+        if (optionalUser.isEmpty()) {
+            throw new NotFoundException(String.format("Пользователя с id = %d для %s не найдено", userIdForCheck,
+                    Actions.TO_VIEW));
+        }
+    }
+
+    private User getUserOrThrow(long userId, String message) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if (optionalUser.isEmpty()) {
+            throw new NotFoundException(String.format("Пользователя с id = %d для %s не найдено", userId, message));
+        }
+        return optionalUser.get();
     }
 }

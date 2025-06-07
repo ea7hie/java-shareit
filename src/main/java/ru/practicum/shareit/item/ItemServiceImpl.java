@@ -10,16 +10,15 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.exception.model.AccessError;
+import ru.practicum.shareit.exception.model.NotFoundException;
 import ru.practicum.shareit.exception.model.ValidationException;
 import ru.practicum.shareit.item.comment.*;
-import ru.practicum.shareit.item.dao.ItemChecks;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemDtoForOwner;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.dao.UserChecks;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.time.LocalDateTime;
@@ -43,7 +42,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemDto createItem(ItemDto itemDto, long userId) {
-        UserChecks.isUserExistsById(userRepository, userId);
+        isUserExistsById(userId);
         itemDto.setOwnerId(userId);
         Item itemForSave = itemRepository.save(ItemMapper.toItem(itemDto));
         return ItemMapper.toItemDto(itemForSave, getCommentDtosByItemIdForItemDto(itemForSave.getId()));
@@ -51,13 +50,13 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemDtoForOwner getItemDtoById(long itemDtoId, long ownerId) {
-        Item item = ItemChecks.getItemOrThrow(itemRepository, itemDtoId, Actions.TO_VIEW);
+        Item item = getItemOrThrow(itemDtoId, Actions.TO_VIEW);
         return getItemDtoForOwnerFromItem(item, ownerId);
     }
 
     @Override
     public Collection<ItemDtoForOwner> getAllItemsByOwnerId(long userId) {
-        UserChecks.isUserExistsById(userRepository, userId);
+        isUserExistsById(userId);
 
         Collection<Item> allItemsByOwnerId = itemRepository.findAllByOwnerId(userId);
 
@@ -83,9 +82,9 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemDto updateItem(ItemDto itemDto, long ownerId, long idOfItem) {
-        UserChecks.isUserExistsById(userRepository, ownerId);
+        isUserExistsById(ownerId);
 
-        Item itemForUpdate = ItemChecks.getItemOrThrow(itemRepository, idOfItem, Actions.TO_UPDATE);
+        Item itemForUpdate = getItemOrThrow(idOfItem, Actions.TO_UPDATE);
 
         if (itemForUpdate.getOwnerId() != ownerId) {
             throw new AccessError(messageCantUpdate);
@@ -106,9 +105,9 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public ItemDto deleteItemById(long itemId, long ownerId) {
-        UserChecks.isUserExistsById(userRepository, ownerId);
+        isUserExistsById(ownerId);
 
-        Item itemForDelete = ItemChecks.getItemOrThrow(itemRepository, itemId, Actions.TO_DELETE);
+        Item itemForDelete = getItemOrThrow(itemId, Actions.TO_DELETE);
         if (itemForDelete.getOwnerId() == ownerId) {
             itemRepository.deleteById(itemId);
             return ItemMapper.toItemDto(itemForDelete, getCommentDtosByItemIdForItemDto(itemId));
@@ -119,7 +118,7 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public Collection<ItemDto> deleteAllItemsFromOwner(long userId) {
-        UserChecks.isUserExistsById(userRepository, userId);
+        isUserExistsById(userId);
 
         Collection<Item> allByOwnerId = itemRepository.findAllByOwnerId(userId);
 
@@ -133,8 +132,8 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public CommentDto createNewComment(CommentDtoForCreate commentDtoForCreate, long authorId, long itemId) {
-        Item item = ItemChecks.getItemOrThrow(itemRepository, itemId, Actions.TO_VIEW);
-        User author = UserChecks.getUserOrThrow(userRepository, authorId, Actions.TO_VIEW);
+        Item item = getItemOrThrow(itemId, Actions.TO_VIEW);
+        User author = getUserOrThrow(authorId, Actions.TO_VIEW);
 
         boolean hasBooking = bookingRepository.existsByItemIdAndBookerIdAndStatusAndEndBefore(itemId, authorId,
                 BookingStatus.APPROVED, LocalDateTime.now());
@@ -162,11 +161,11 @@ public class ItemServiceImpl implements ItemService {
         LocalDateTime now = LocalDateTime.now();
         Optional<Booking> optionalLastBooking = bookingRepository
                 .findFirstOneByItemIdAndStatusAndEndBeforeOrderByEndDesc(
-                item.getId(), BookingStatus.APPROVED, now);
+                        item.getId(), BookingStatus.APPROVED, now);
 
         Optional<Booking> optionalNextBooking = bookingRepository
                 .findFirstOneByItemIdAndStatusAndStartAfterOrderByStartAsc(
-                item.getId(), BookingStatus.APPROVED, now);
+                        item.getId(), BookingStatus.APPROVED, now);
 
         BookingDto lastBookingDto = optionalLastBooking
                 .map(booking -> BookingMapper.toBookingDto(booking, getCommentDtosByItemIdForItemDto(item.getId())))
@@ -183,5 +182,29 @@ public class ItemServiceImpl implements ItemService {
 
     private List<Comment> getCommentsByItemId(long itemId) {
         return (List<Comment>) commentRepository.findAllByItemId(itemId);
+    }
+
+    private Item getItemOrThrow(long itemId, String message) {
+        Optional<Item> optionalItem = itemRepository.findById(itemId);
+        if (optionalItem.isEmpty()) {
+            throw new NotFoundException(String.format("Вещи с id = %d для %s не найдено", itemId, message));
+        }
+        return optionalItem.get();
+    }
+
+    private void isUserExistsById(long userIdForCheck) {
+        Optional<User> optionalUser = userRepository.findById(userIdForCheck);
+        if (optionalUser.isEmpty()) {
+            throw new NotFoundException(String.format("Пользователя с id = %d для %s не найдено", userIdForCheck,
+                    Actions.TO_VIEW));
+        }
+    }
+
+    private User getUserOrThrow(long userId, String message) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+        if (optionalUser.isEmpty()) {
+            throw new NotFoundException(String.format("Пользователя с id = %d для %s не найдено", userId, message));
+        }
+        return optionalUser.get();
     }
 }
