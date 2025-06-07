@@ -14,15 +14,22 @@ import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.enums.BookingDtoStates;
 import ru.practicum.shareit.exception.model.AccessError;
 import ru.practicum.shareit.exception.model.ValidationException;
+import ru.practicum.shareit.item.comment.CommentDto;
+import ru.practicum.shareit.item.comment.CommentMapper;
+import ru.practicum.shareit.item.comment.CommentRepository;
 import ru.practicum.shareit.item.dao.ItemChecks;
 import ru.practicum.shareit.item.dao.ItemRepository;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserChecks;
 import ru.practicum.shareit.user.dao.UserRepository;
+import ru.practicum.shareit.user.dto.UserMapper;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +38,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
 
     private final String messageIsOverlaps =
             "К сожалению, бронирование невозможно: товар уже забронирован на это время.";
@@ -54,14 +62,15 @@ public class BookingServiceImpl implements BookingService {
             throw new ValidationException(messageIsOverlaps);
         }
 
-        BookingDto bookingDto = BookingMapper.toBookingDto(bookingDtoPost, booker, item);
+        ItemDto itemDto = ItemMapper.toItemDto(item, getCommentDtosByItemId(item.getId()));
+        BookingDto bookingDto = BookingMapper.toBookingDto(bookingDtoPost, UserMapper.toUserDto(booker), itemDto);
         Booking bookingForAdd = BookingMapper.toBooking(bookingDto);
 
         if (isTimeOverlaps(bookingForAdd)) {
             throw new ValidationException(messageIsOverlaps);
         }
 
-        return BookingMapper.toBookingDto(bookingRepository.save(bookingForAdd));
+        return BookingMapper.toBookingDto(bookingRepository.save(bookingForAdd), itemDto.getComments());
     }
 
     @Override
@@ -71,7 +80,7 @@ public class BookingServiceImpl implements BookingService {
         Item item = ItemChecks.getItemOrThrow(itemRepository, booking.getItem().getId(), Actions.TO_VIEW);
 
         if (booking.getBooker().getId() == userId || item.getOwnerId() == userId) {
-            return BookingMapper.toBookingDto(booking);
+            return BookingMapper.toBookingDto(booking, getCommentDtosByItemId(item.getId()));
         }
 
         throw new AccessError(messageCantView);
@@ -80,7 +89,7 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Collection<BookingDto> getAllBookingsByItemId(long itemId) {
         return bookingRepository.findAllByItemId(itemId).stream()
-                .map(BookingMapper::toBookingDto)
+                .map(booking -> BookingMapper.toBookingDto(booking, getCommentDtosByItemId(itemId)))
                 .toList();
     }
 
@@ -92,7 +101,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         return bookingRepository.findAllByItemIdAndStatus(itemId, bookingStatus).stream()
-                .map(BookingMapper::toBookingDto)
+                .map(booking -> BookingMapper.toBookingDto(booking, getCommentDtosByItemId(itemId)))
                 .toList();
     }
 
@@ -106,7 +115,8 @@ public class BookingServiceImpl implements BookingService {
 
         if (state == BookingDtoStates.ALL) {
             return bookingRepository.findAllByBookerId(userId).stream()
-                    .map(BookingMapper::toBookingDto)
+                    .map(booking -> BookingMapper.toBookingDto(booking,
+                            getCommentDtosByItemId(booking.getItem().getId())))
                     .toList();
         }
 
@@ -121,7 +131,8 @@ public class BookingServiceImpl implements BookingService {
         };
 
         return foundedBookings.stream()
-                .map(BookingMapper::toBookingDto)
+                .map(booking -> BookingMapper.toBookingDto(booking,
+                        getCommentDtosByItemId(booking.getItem().getId())))
                 .toList();
     }
 
@@ -129,7 +140,8 @@ public class BookingServiceImpl implements BookingService {
     public Collection<BookingDto> getAllBookingsFromBooker(long bookerId) {
         UserChecks.isUserExistsById(userRepository, bookerId);
         return bookingRepository.findAllByBookerId(bookerId).stream()
-                .map(BookingMapper::toBookingDto)
+                .map(booking -> BookingMapper.toBookingDto(booking,
+                        getCommentDtosByItemId(booking.getItem().getId())))
                 .toList();
     }
 
@@ -149,7 +161,8 @@ public class BookingServiceImpl implements BookingService {
         };
 
         return foundedBookings.stream()
-                .map(BookingMapper::toBookingDto)
+                .map(booking -> BookingMapper.toBookingDto(booking,
+                        getCommentDtosByItemId(booking.getItem().getId())))
                 .toList();
     }
 
@@ -160,7 +173,6 @@ public class BookingServiceImpl implements BookingService {
                 bookingId, Actions.TO_UPDATE);
         Item item = ItemChecks.getItemOrThrow(itemRepository, bookingForUpdate.getItem().getId(), Actions.TO_UPDATE);
 
-
         if (item.getOwnerId() == userId) {
             bookingForUpdate.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
         } else {
@@ -168,7 +180,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         bookingRepository.updateBooking(bookingId, bookingForUpdate.getStatus());
-        return BookingMapper.toBookingDto(bookingForUpdate);
+        return BookingMapper.toBookingDto(bookingForUpdate, getCommentDtosByItemId(item.getId()));
     }
 
     @Override
@@ -184,7 +196,7 @@ public class BookingServiceImpl implements BookingService {
 
         bookingRepository.deleteById(bookingDtoIdForDelete);
 
-        return BookingMapper.toBookingDto(bookingForDelete);
+        return BookingMapper.toBookingDto(bookingForDelete, getCommentDtosByItemId(bookingForDelete.getItem().getId()));
     }
 
     @Override
@@ -203,5 +215,11 @@ public class BookingServiceImpl implements BookingService {
         }
 
         return false;
+    }
+
+    private List<CommentDto> getCommentDtosByItemId(long itemId) {
+        return commentRepository.findAllByItemId(itemId).stream()
+                .map(CommentMapper::toCommentDto)
+                .toList();
     }
 }

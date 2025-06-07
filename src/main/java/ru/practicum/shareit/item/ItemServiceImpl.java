@@ -46,7 +46,7 @@ public class ItemServiceImpl implements ItemService {
         UserChecks.isUserExistsById(userRepository, userId);
         itemDto.setOwnerId(userId);
         Item itemForSave = itemRepository.save(ItemMapper.toItem(itemDto));
-        return ItemMapper.toItemDto(itemForSave, getCommentsByItemId(itemForSave.getId()));
+        return ItemMapper.toItemDto(itemForSave, getCommentDtosByItemIdForItemDto(itemForSave.getId()));
     }
 
     @Override
@@ -76,7 +76,7 @@ public class ItemServiceImpl implements ItemService {
                 .findByDescriptionContainsIgnoreCaseAndIsAvailableIsTrueOrNameContainsIgnoreCaseAndIsAvailableIsTrue(
                         text, text)
                 .stream()
-                .map(item -> ItemMapper.toItemDto(item, getCommentsByItemId(item.getId())))
+                .map(item -> ItemMapper.toItemDto(item, getCommentDtosByItemIdForItemDto(item.getId())))
                 .toList();
     }
 
@@ -100,7 +100,7 @@ public class ItemServiceImpl implements ItemService {
         itemRepository.updateItem(idOfItem, itemForUpdate.getName(), itemForUpdate.getDescription(),
                 itemForUpdate.isAvailable());
 
-        return ItemMapper.toItemDto(itemForUpdate, getCommentsByItemId(idOfItem));
+        return ItemMapper.toItemDto(itemForUpdate, getCommentDtosByItemIdForItemDto(idOfItem));
     }
 
     @Override
@@ -111,7 +111,7 @@ public class ItemServiceImpl implements ItemService {
         Item itemForDelete = ItemChecks.getItemOrThrow(itemRepository, itemId, Actions.TO_DELETE);
         if (itemForDelete.getOwnerId() == ownerId) {
             itemRepository.deleteById(itemId);
-            return ItemMapper.toItemDto(itemForDelete, getCommentsByItemId(itemId));
+            return ItemMapper.toItemDto(itemForDelete, getCommentDtosByItemIdForItemDto(itemId));
         }
         throw new AccessError(messageCantDelete);
     }
@@ -126,7 +126,7 @@ public class ItemServiceImpl implements ItemService {
         itemRepository.deleteAllItemsFromOwner(userId);
 
         return allByOwnerId.stream()
-                .map(item -> ItemMapper.toItemDto(item, getCommentsByItemId(item.getId())))
+                .map(item -> ItemMapper.toItemDto(item, getCommentDtosByItemIdForItemDto(item.getId())))
                 .toList();
     }
 
@@ -147,9 +147,16 @@ public class ItemServiceImpl implements ItemService {
         throw new ValidationException(messageCantCommented);
     }
 
+    public List<CommentDto> getCommentDtosByItemIdForItemDto(long itemId) {
+        return getCommentsByItemId(itemId).stream()
+                .map(CommentMapper::toCommentDto)
+                .toList();
+    }
+
     private ItemDtoForOwner getItemDtoForOwnerFromItem(Item item, long ownerId) {
         if (item.getOwnerId() != ownerId) {
-            return ItemMapper.toItemDtoForOwner(item, null, null, getCommentsByItemId(item.getId()));
+            return ItemMapper.toItemDtoForOwner(item, null, null,
+                    getCommentDtosByItemIdForItemDto(item.getId()));
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -161,15 +168,20 @@ public class ItemServiceImpl implements ItemService {
                 .findFirstOneByItemIdAndStatusAndStartAfterOrderByStartAsc(
                 item.getId(), BookingStatus.APPROVED, now);
 
-        BookingDto lastBookingDto = optionalLastBooking.map(BookingMapper::toBookingDto).orElse(null);
-        BookingDto nextBookingDto = optionalNextBooking.map(BookingMapper::toBookingDto).orElse(null);
+        BookingDto lastBookingDto = optionalLastBooking
+                .map(booking -> BookingMapper.toBookingDto(booking, getCommentDtosByItemIdForItemDto(item.getId())))
+                .orElse(null);
 
-        return ItemMapper.toItemDtoForOwner(item, lastBookingDto, nextBookingDto, getCommentsByItemId(item.getId()));
+
+        BookingDto nextBookingDto = optionalNextBooking
+                .map(booking -> BookingMapper.toBookingDto(booking, getCommentDtosByItemIdForItemDto(item.getId())))
+                .orElse(null);
+
+        return ItemMapper.toItemDtoForOwner(item, lastBookingDto, nextBookingDto,
+                getCommentDtosByItemIdForItemDto(item.getId()));
     }
 
-    private List<CommentDto> getCommentsByItemId(long itemId) {
-        return commentRepository.findAllByItemId(itemId).stream()
-                .map(CommentMapper::toCommentDto)
-                .toList();
+    private List<Comment> getCommentsByItemId(long itemId) {
+        return (List<Comment>) commentRepository.findAllByItemId(itemId);
     }
 }
