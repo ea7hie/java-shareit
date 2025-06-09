@@ -6,11 +6,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.item.model.Item;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
-    Collection<Item> findAllByOwnerId(long ownerId);
+    List<Item> findAllByOwnerId(long ownerId);
 
     List<Item> findByDescriptionContainsIgnoreCaseAndIsAvailableIsTrueOrNameContainsIgnoreCaseAndIsAvailableIsTrue(
             String description, String name
@@ -25,4 +24,12 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     @Modifying
     @Query("DELETE Item i WHERE i.ownerId = :ownerId")
     void deleteAllItemsFromOwner(@Param("ownerId") long ownerId);
+
+   /* @Query("SELECT * ")
+    Collection<Item> findAllByOwnerIdWithComments(long ownerId);*/
+
+    //  @Query("SELECT NEW com.example.dto.ProductDto(p.productName, p.price) FROM Product p WHERE p.price > :price")
+
+   /* @Query("SELECT NEW ru.practicum.shareit.item.dto.ItemDto()")
+    Collection<Item> findAllByOwnerIdWithComments(long ownerId);*/
 }
