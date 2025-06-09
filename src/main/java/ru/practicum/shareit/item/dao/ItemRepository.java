@@ -24,12 +24,4 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     @Modifying
     @Query("DELETE Item i WHERE i.ownerId = :ownerId")
     void deleteAllItemsFromOwner(@Param("ownerId") long ownerId);
-
-   /* @Query("SELECT * ")
-    Collection<Item> findAllByOwnerIdWithComments(long ownerId);*/
-
-    //  @Query("SELECT NEW com.example.dto.ProductDto(p.productName, p.price) FROM Product p WHERE p.price > :price")
-
-   /* @Query("SELECT NEW ru.practicum.shareit.item.dto.ItemDto()")
-    Collection<Item> findAllByOwnerIdWithComments(long ownerId);*/
 }
