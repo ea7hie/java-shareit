@@ -15,6 +15,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             String description, String name
     );
 
+    List<Item> findAllByRequestId(long requestId);
+
     @Modifying
     @Query("UPDATE Item i SET i.name = :name, i.description = :description, i.isAvailable = :isAvailable " +
             "WHERE i.id = :itemId")
