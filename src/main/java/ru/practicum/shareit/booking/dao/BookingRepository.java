@@ -1,29 +1,53 @@
 package ru.practicum.shareit.booking.dao;
 
-import ru.practicum.shareit.booking.dto.BookingDto;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Optional;
 
-public interface BookingRepository {
-    Booking createBooking(Booking booking);
+public interface BookingRepository extends JpaRepository<Booking, Long> {
+    Collection<Booking> findAllByItemId(long itemId);
 
-    Collection<Booking> getAllBookings();
+    Collection<Booking> findAllByItemIdAndStatus(long itemId, BookingStatus status);
 
-    Booking getBookingById(long bookingIg);
+    Collection<Booking> findAllByBookerId(long bookerId);
 
-    Collection<Booking> getAllBookingsByItemId(long itemId);
+    Collection<Booking> findAllByBookerIdAndStatus(long bookerId, BookingStatus status);
 
-    Collection<Booking> getAllBookingsByItemIdAndStatus(long itemId, BookingStatus bookingStatus);
+    Collection<Booking> findAllByBookerIdAndEndBeforeOrderByEndDesc(long bookerId, LocalDateTime start);
 
-    Collection<Booking> getAllBookingsByStatus(BookingStatus bookingStatus);
+    Collection<Booking> findAllByBookerIdAndStartAfterOrderByStartAsc(long bookerId, LocalDateTime end);
 
-    Collection<Booking> getAllBookingsFromBooker(long bookerId);
+    Collection<Booking> findByBookerIdAndStartBeforeAndEndAfterOrderByStartAsc(long bookerId, LocalDateTime start,
+                                                                               LocalDateTime end);
 
-    Collection<Booking> getAllBookingsToOwner(long ownerId);
+    Collection<Booking> findAllByItemOwnerId(long ownerId);
 
-    Booking updateBooking(BookingDto bookingDtoForUpdate, long userId);
+    Collection<Booking> findAllByItemOwnerIdAndStatus(long ownerId, BookingStatus status);
 
-    Booking deleteBooking(long bookingIdForDelete, long userId);
+    Collection<Booking> findAllByItemOwnerIdAndEndBeforeOrderByEndDesc(long ownerId, LocalDateTime start);
+
+    Collection<Booking> findAllByItemOwnerIdAndStartAfterOrderByStartAsc(long ownerId, LocalDateTime end);
+
+    Collection<Booking> findByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartAsc(long ownerId, LocalDateTime start,
+                                                                                  LocalDateTime end);
+
+    Optional<Booking> findFirstOneByItemIdAndStatusAndEndBeforeOrderByEndDesc(long itemId, BookingStatus status,
+                                                                              LocalDateTime end);
+
+    Optional<Booking> findFirstOneByItemIdAndStatusAndStartAfterOrderByStartAsc(long itemId, BookingStatus status,
+                                                                                LocalDateTime start);
+
+    boolean existsByItemIdAndBookerIdAndStatusAndEndBefore(long itemId, long bookerId, BookingStatus status,
+                                                           LocalDateTime end);
+
+    @Modifying
+    @Query("UPDATE Booking b SET b.status = :status WHERE b.id = :bookingId")
+    void updateBooking(@Param("bookingId") long bookingId, @Param("status") BookingStatus status);
 }
