@@ -8,6 +8,7 @@ import ru.practicum.shareit.exception.model.NotFoundException;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDtoForRequest;
 import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dao.RequestRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoForCreate;
@@ -38,8 +39,14 @@ public class RequestServiceImpl implements RequestService {
 
     @Override
     public Collection<ItemRequestDto> getAllItemRequest() {
-        return requestRepository.findAll().stream()
-                .map(request -> ItemRequestMapper.toItemRequestDto(request, getItemDtoForRequest(request.getId())))
+        List<ItemRequest> allRequests = requestRepository.findAll();
+        List<Item> allItems = getItemsForListRequests(
+                allRequests.stream().map(ItemRequest::getId).toList()
+        );
+
+        return allRequests.stream()
+                .map(request -> ItemRequestMapper.toItemRequestDto(request,
+                        getItemDtoForRequest(request.getId(), allItems)))
                 .toList();
     }
 
@@ -53,8 +60,16 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public Collection<ItemRequestDto> getAllItemRequestsFromRequester(long requesterId) {
         isUserExistsById(requesterId);
-        return requestRepository.findAllByRequesterId(requesterId).stream()
-                .map(request -> ItemRequestMapper.toItemRequestDto(request, getItemDtoForRequest(request.getId())))
+
+        Collection<ItemRequest> allRequests = requestRepository.findAllByRequesterId(requesterId);
+        List<Item> allItems = getItemsForListRequests(
+                allRequests.stream().map(ItemRequest::getId).toList()
+        );
+
+
+        return allRequests.stream()
+                .map(request -> ItemRequestMapper.toItemRequestDto(request,
+                        getItemDtoForRequest(request.getId(), allItems)))
                 .toList();
     }
 
@@ -101,6 +116,22 @@ public class RequestServiceImpl implements RequestService {
 
     private List<ItemDtoForRequest> getItemDtoForRequest(long requestId) {
         return itemRepository.findAllByRequestId(requestId).stream()
+                .map(ItemMapper::toItemDtoForRequest)
+                .toList();
+    }
+
+    private List<Item> getItemsForListRequests(List<Long> requestIds) {
+        return itemRepository.findAllByRequestIdIn(requestIds);
+    }
+
+    private List<ItemDtoForRequest> getItemDtoForRequest(long requestId, List<Item> allItems) {
+        List<Item> itemsForRequest = allItems.stream()
+                .filter(item -> item.getRequestId() == requestId)
+                .toList();
+
+        allItems.removeAll(itemsForRequest);
+
+        return itemsForRequest.stream()
                 .map(ItemMapper::toItemDtoForRequest)
                 .toList();
     }
