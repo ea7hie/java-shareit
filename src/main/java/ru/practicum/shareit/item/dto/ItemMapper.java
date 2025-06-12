@@ -43,4 +43,8 @@ public class ItemMapper {
                 itemDto.getAvailable()
         );
     }
+
+    public ItemDtoForRequest toItemDtoForRequest(Item item) {
+        return new ItemDtoForRequest(item.getId(), item.getName(), item.getOwnerId());
+    }
 }

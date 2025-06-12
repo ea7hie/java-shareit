@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoForRequest;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,5 +20,5 @@ public class ItemRequestDto {
     private long requesterId;
     private LocalDateTime created;
 
-    private List<ItemDto> items;
+    private List<ItemDtoForRequest> items;
 }

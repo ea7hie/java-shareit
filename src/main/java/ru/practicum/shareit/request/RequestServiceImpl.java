@@ -5,14 +5,9 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.enums.Actions;
 import ru.practicum.shareit.exception.model.AccessError;
 import ru.practicum.shareit.exception.model.NotFoundException;
-import ru.practicum.shareit.item.comment.Comment;
-import ru.practicum.shareit.item.comment.CommentDto;
-import ru.practicum.shareit.item.comment.CommentMapper;
-import ru.practicum.shareit.item.comment.CommentRepository;
 import ru.practicum.shareit.item.dao.ItemRepository;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemDtoForRequest;
 import ru.practicum.shareit.item.dto.ItemMapper;
-import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dao.RequestRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestDtoForCreate;
@@ -30,7 +25,6 @@ public class RequestServiceImpl implements RequestService {
     private final RequestRepository requestRepository;
     private final UserRepository userRepository;
     private final ItemRepository itemRepository;
-    private final CommentRepository commentRepository;
 
     private final String messageCantUpdate = "У вас нет прав доступа к редактированию этого запроса.";
     private final String messageCantDelete = "У вас нет прав доступа к удалению этого запроса.";
@@ -45,14 +39,14 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public Collection<ItemRequestDto> getAllItemRequest() {
         return requestRepository.findAll().stream()
-                .map(request -> ItemRequestMapper.toItemRequestDto(request, getItemDto(request.getId())))
+                .map(request -> ItemRequestMapper.toItemRequestDto(request, getItemDtoForRequest(request.getId())))
                 .toList();
     }
 
     @Override
     public ItemRequestDto getItemRequestById(long itemRequestId) {
         ItemRequest itemRequest = getItemRequestOrThrow(itemRequestId, Actions.TO_VIEW);
-        return ItemRequestMapper.toItemRequestDto(itemRequest, getItemDto(itemRequestId));
+        return ItemRequestMapper.toItemRequestDto(itemRequest, getItemDtoForRequest(itemRequestId));
 
     }
 
@@ -60,7 +54,7 @@ public class RequestServiceImpl implements RequestService {
     public Collection<ItemRequestDto> getAllItemRequestsFromRequester(long requesterId) {
         isUserExistsById(requesterId);
         return requestRepository.findAllByRequesterId(requesterId).stream()
-                .map(request -> ItemRequestMapper.toItemRequestDto(request, getItemDto(request.getId())))
+                .map(request -> ItemRequestMapper.toItemRequestDto(request, getItemDtoForRequest(request.getId())))
                 .toList();
     }
 
@@ -73,7 +67,7 @@ public class RequestServiceImpl implements RequestService {
                     itemReqForUpdate.getDescription() : itemReqDtoForUpdate.getDescription());
 
             requestRepository.updateItemRequest(itemReqId, itemReqForUpdate.getDescription());
-            return ItemRequestMapper.toItemRequestDto(itemReqForUpdate, getItemDto(itemReqId));
+            return ItemRequestMapper.toItemRequestDto(itemReqForUpdate, getItemDtoForRequest(itemReqId));
         }
         throw new AccessError(messageCantUpdate);
     }
@@ -84,7 +78,7 @@ public class RequestServiceImpl implements RequestService {
 
         if (itemRequestForDelete.getRequesterId() == userId) {
             requestRepository.deleteById(itemRequestIdForDelete);
-            return ItemRequestMapper.toItemRequestDto(itemRequestForDelete, getItemDto(itemRequestIdForDelete));
+            return ItemRequestMapper.toItemRequestDto(itemRequestForDelete, getItemDtoForRequest(itemRequestIdForDelete));
         }
         throw new AccessError(messageCantDelete);
     }
@@ -105,31 +99,9 @@ public class RequestServiceImpl implements RequestService {
         }
     }
 
-    private List<ItemDto> getItemDto(long requestId) {
-        List<Item> items = itemRepository.findAllByRequestId(requestId);
-
-        List<Long> itemsIds = items.stream().map(Item::getId).toList();
-        Collection<Comment> allComments = getCommentsByItemIds(itemsIds);
-
-        return items.stream()
-                .map(item -> ItemMapper.toItemDto(item,
-                        getCommentDtosForOneItemDtoFromComments(allComments, item.getId())))
-                .toList();
-    }
-
-    private Collection<Comment> getCommentsByItemIds(Collection<Long> itemIds) {
-        return commentRepository.findAllByItemIdIn(itemIds);
-    }
-
-    private List<CommentDto> getCommentDtosForOneItemDtoFromComments(Collection<Comment> allComments, long itemID) {
-        List<Comment> commentsFromItem = allComments.stream()
-                .filter(comment -> comment.getItem().getId() == itemID)
-                .toList();
-
-        allComments.removeAll(commentsFromItem);
-
-        return commentsFromItem.stream()
-                .map(CommentMapper::toCommentDto)
+    private List<ItemDtoForRequest> getItemDtoForRequest(long requestId) {
+        return itemRepository.findAllByRequestId(requestId).stream()
+                .map(ItemMapper::toItemDtoForRequest)
                 .toList();
     }
 }
