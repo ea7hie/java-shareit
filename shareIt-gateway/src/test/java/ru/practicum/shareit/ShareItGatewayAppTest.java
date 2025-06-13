@@ -6,9 +6,9 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
-@ContextConfiguration(classes = ShareItGateway.class)
+@ContextConfiguration(classes = ShareItGatewayApp.class)
 @ActiveProfiles("test")
-class ShareItGatewayTest {
+class ShareItGatewayAppTest {
 
     @Test
     void contextLoads() {
