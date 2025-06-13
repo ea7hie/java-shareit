@@ -1,4 +1,4 @@
-package ru.practicum.booking;
+package ru.practicum.shareit.booking;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
