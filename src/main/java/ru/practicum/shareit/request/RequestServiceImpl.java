@@ -66,7 +66,6 @@ public class RequestServiceImpl implements RequestService {
                 allRequests.stream().map(ItemRequest::getId).toList()
         );
 
-
         return allRequests.stream()
                 .map(request -> ItemRequestMapper.toItemRequestDto(request,
                         getItemDtoForRequest(request.getId(), allItems)))
