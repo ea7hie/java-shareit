@@ -2,7 +2,6 @@ package ru.practicum.shareit.booking;
 
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingDtoPost;
-import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
 import ru.practicum.shareit.enums.BookingDtoStates;
 
@@ -10,6 +9,9 @@ import java.util.Collection;
 
 public interface BookingService {
     BookingDto createBooking(BookingDtoPost bookingDtoPost, long bookerId);
+
+    Collection<BookingDto> getAllBookingsByStatusForOwnerInAmount(long userId, BookingDtoStates state,
+                                                                  int from, int size);
 
     BookingDto getBookingById(long bookingId, long userId);
 
@@ -26,6 +28,4 @@ public interface BookingService {
     BookingDto updateBooking(long bookingId, long userId, boolean approved);
 
     BookingDto deleteBooking(long bookingIdForDelete, long userId);
-
-    boolean isTimeOverlaps(Booking bookingForCheck);
 }

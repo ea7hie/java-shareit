@@ -48,12 +48,6 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingDto createBooking(BookingDtoPost bookingDtoPost, long bookerId) {
-        if (bookingDtoPost.getEnd().isBefore(bookingDtoPost.getStart()) ||
-                bookingDtoPost.getEnd().isEqual(bookingDtoPost.getStart())) {
-            throw new ValidationException("Окончание бронирования вещи не может быть раньше её начала " +
-                    "или совпадать с ней.");
-        }
-
         Item item = getItemOrThrow(bookingDtoPost.getItemId(), Actions.TO_VIEW);
         User booker = getUserOrThrow(bookerId, Actions.TO_VIEW);
 
@@ -108,19 +102,18 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<BookingDto> getAllBookingsByStatus(long userId, BookingDtoStates state) {
+    public Collection<BookingDto> getAllBookingsByStatusForOwnerInAmount(long userId, BookingDtoStates state,
+                                                                         int from, int size) {
         isUserExistsById(userId);
 
-        if (state == null) {
-            state = BookingDtoStates.ALL;
-        }
+        return  bookingRepository.getAllBookingsByStatusForOwnerInAmount(userId, state, from, size).stream()
+                .map(booking -> BookingMapper.toBookingDto(booking, getCommentDtosByItemId(booking.getItem().getId())))
+                .toList();
+    }
 
-        if (state == BookingDtoStates.ALL) {
-            return bookingRepository.findAllByBookerId(userId).stream()
-                    .map(booking -> BookingMapper.toBookingDto(booking,
-                            getCommentDtosByItemId(booking.getItem().getId())))
-                    .toList();
-        }
+    @Override
+    public Collection<BookingDto> getAllBookingsByStatus(long userId, BookingDtoStates state) {
+        isUserExistsById(userId);
 
         LocalDateTime now = LocalDateTime.now();
         Collection<Booking> foundedBookings = switch (state) {
@@ -199,7 +192,6 @@ public class BookingServiceImpl implements BookingService {
         return BookingMapper.toBookingDto(bookingForDelete, getCommentDtosByItemId(bookingForDelete.getItem().getId()));
     }
 
-    @Override
     public boolean isTimeOverlaps(Booking bookingForCheck) { //if true - то нельзя добавлять, есть пересечения!
         Collection<Booking> allApprovedBookingsByItemId = bookingRepository
                 .findAllByItemIdAndStatus(bookingForCheck.getItem().getId(), BookingStatus.APPROVED);

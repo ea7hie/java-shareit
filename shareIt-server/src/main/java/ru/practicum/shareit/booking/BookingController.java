@@ -24,14 +24,22 @@ public class BookingController {
     }
 
     @GetMapping
+    public Collection<BookingDto> getAllBookingsByStatusForOwnerInAmount(@RequestHeader(headerOfUserId) long userId,
+                                                                         @RequestParam BookingDtoStates state,
+                                                                         @RequestParam int from,
+                                                                         @RequestParam int size) {
+        return bookingService.getAllBookingsByStatusForOwnerInAmount(userId, state, from, size);
+    }
+
+    @GetMapping("/all")
     public Collection<BookingDto> getAllBookingsByStatus(@RequestHeader(headerOfUserId) long userId,
-                                                         @RequestParam(required = false) BookingDtoStates state) {
+                                                         @RequestParam BookingDtoStates state) {
         return bookingService.getAllBookingsByStatus(userId, state);
     }
 
     @GetMapping("/owner")
     public Collection<BookingDto> getAllBookingsByStatusForOwner(@RequestHeader(headerOfUserId) long userId,
-                                                                 @RequestParam(required = false) BookingDtoStates state) {
+                                                                 @RequestParam BookingDtoStates state) {
         return bookingService.getAllBookingsByStatusForOwner(userId, state);
     }
 
@@ -42,7 +50,7 @@ public class BookingController {
 
     @GetMapping("/item/{itemId}")
     public Collection<BookingDto> getAllBookingsByItemIdAndStatus(@PathVariable long itemId,
-                                                                  @RequestParam(required = false) BookingStatus status) {
+                                                                  @RequestParam BookingStatus status) {
         return bookingService.getAllBookingsByItemIdAndStatus(itemId, status);
     }
 
@@ -52,7 +60,8 @@ public class BookingController {
     }
 
     @PatchMapping("/{bookingId}")
-    public BookingDto updateBooking(@PathVariable long bookingId, @RequestHeader(headerOfUserId) long userId,
+    public BookingDto updateBooking(@PathVariable long bookingId,
+                                    @RequestHeader(headerOfUserId) long userId,
                                     @RequestParam Boolean approved) {
         return bookingService.updateBooking(bookingId, userId, approved);
     }
