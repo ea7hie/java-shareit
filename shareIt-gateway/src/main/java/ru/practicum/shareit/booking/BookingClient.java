@@ -18,13 +18,6 @@ import java.util.Map;
 public class BookingClient extends BaseClient {
     private static final String API_PREFIX = "/bookings";
 
-    private final String messageIsOverlaps =
-            "К сожалению, бронирование невозможно: товар уже забронирован на это время.";
-    private final String messageCantView = "У вас нет прав доступа к просмотру этой брони.";
-    private final String messageCantUpdate = "У вас нет прав доступа к редактированию этой брони.";
-    private final String messageCantDelete = "У вас нет прав доступа к удалению этой брони.";
-
-
     @Autowired
     public BookingClient(@Value("${shareit-server.url}") String serverUrl, RestTemplateBuilder builder) {
         super(
@@ -78,8 +71,8 @@ public class BookingClient extends BaseClient {
     }
 
     public ResponseEntity<Object> updateBooking(long bookingId, long userId, Boolean approved) {
-        Map<String, Object> parameters = Map.of("approved", approved);
-        return patch("/" + bookingId + "?approved={approved}", userId, parameters);
+        // Map<String, Object> parameters = Map.of("approved", approved);
+        return patch("/" + bookingId + "?approved=" + approved, userId);
     }
 
     public ResponseEntity<Object> deleteBooking(long userId, long bookingId) {

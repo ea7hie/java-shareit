@@ -11,6 +11,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookItemRequestDto;
 import ru.practicum.shareit.booking.dto.BookingState;
+import ru.practicum.shareit.client.BaseClient;
 
 
 @Controller
@@ -20,7 +21,7 @@ import ru.practicum.shareit.booking.dto.BookingState;
 @Validated
 public class BookingController {
     private final BookingClient bookingClient;
-    private final String headerOfUserId = "X-Sharer-User-Id";
+    private final String headerOfUserId = BaseClient.headerOfUserId;
 
     @PostMapping
     public ResponseEntity<Object> createBookingGW(@RequestHeader(headerOfUserId) long userId,
@@ -85,7 +86,7 @@ public class BookingController {
     @PatchMapping("/{bookingId}")
     public ResponseEntity<Object> updateBookingGW(@RequestHeader(headerOfUserId) long userId,
                                                   @Positive @PathVariable long bookingId,
-                                                  @RequestParam Boolean approved) {
+                                                  @RequestParam("approved") Boolean approved) {
         return bookingClient.updateBooking(bookingId, userId, approved);
     }
 

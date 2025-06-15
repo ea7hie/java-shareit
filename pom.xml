@@ -15,6 +15,7 @@
     <packaging>pom</packaging>
 
     <name>ShareIt</name>
+
     <modules>
         <module>shareIt-gateway</module>
 		<module>shareIt-server</module>
