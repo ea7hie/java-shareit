@@ -36,13 +36,15 @@ public class ItemRequestController {
     }
 
     @PatchMapping("/{itemReqId}")
-    public ItemRequestDto updateItemRequest(ItemRequestDtoForCreate itemRequestDtoForUpdate,
-                                            long userId, @PathVariable long itemReqId) {
+    public ItemRequestDto updateItemRequest(@RequestBody ItemRequestDtoForCreate itemRequestDtoForUpdate,
+                                            @RequestHeader(headerOfUserId) long userId,
+                                            @PathVariable long itemReqId) {
         return requestService.updateItemRequest(itemRequestDtoForUpdate, userId, itemReqId);
     }
 
-    @DeleteMapping
-    public ItemRequestDto deleteItemRequest(long itemRequestIdForDelete, long userId) {
+    @DeleteMapping("/{itemRequestIdForDelete}")
+    public ItemRequestDto deleteItemRequest(@PathVariable long itemRequestIdForDelete,
+                                            @RequestHeader(headerOfUserId) long userId) {
         return requestService.deleteItemRequest(itemRequestIdForDelete, userId);
     }
 }
