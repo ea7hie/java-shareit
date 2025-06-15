@@ -59,7 +59,6 @@ public class BookingController {
         return bookingClient.getAllBookingsByStatusForOwner(userId, state);
     }
 
-    //original from shablone
     @GetMapping("/{bookingId}")
     public ResponseEntity<Object> getBookingGW(@RequestHeader(headerOfUserId) long userId,
                                                @Positive @PathVariable Long bookingId) {
