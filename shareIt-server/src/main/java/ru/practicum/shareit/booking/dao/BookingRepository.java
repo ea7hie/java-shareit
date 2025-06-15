@@ -21,7 +21,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     Collection<Booking> findAllByBookerIdAndStatus(long bookerId, BookingStatus status);
 
-    @Query(value = "SELECT b FROM Booking b WHERE b.booker.id = :userId AND b.status = :state LIMIT :size OFFSET :from",
+    @Query(value = "SELECT * FROM bookings b WHERE b.booker_id = :userId AND b.status = :state LIMIT :size OFFSET :from",
             nativeQuery = true)
     Collection<Booking> getAllBookingsByStatusForOwnerInAmount(@Param("userId") long userId,
                                                                @Param("state") BookingDtoStates state,

@@ -1,39 +1,43 @@
 package ru.practicum.shareit.user;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
-
-import java.util.Collection;
 
 @RestController
 @RequestMapping(path = "/users")
 @RequiredArgsConstructor
 public class UserController {
-    private final UserService userService;
+    private final UserClient userClient;
+    private final String headerOfUserId = "X-Sharer-User-Id";
 
     @PostMapping
-    public UserDto createNewUser(@RequestBody UserDto userDto) {
-        return userService.createUser(userDto);
+    public ResponseEntity<Object> createNewUser(@RequestBody @Valid UserDto userDto) {
+        return userClient.createUser(userDto);
     }
 
     @GetMapping("/{idOfUser}")
-    public UserDto getUserById(@PathVariable long idOfUser) {
-        return userService.getUserByID(idOfUser);
+    public ResponseEntity<Object> getUserById(@Positive @PathVariable long idOfUser,
+                                              @RequestHeader(headerOfUserId) long userIdWhoWantView) {
+        return userClient.getUserByID(idOfUser, userIdWhoWantView);
     }
 
     @GetMapping
-    public Collection<UserDto> getUserById() {
-        return userService.getAllUsers();
+    public ResponseEntity<Object> getAllUsers(@RequestHeader(headerOfUserId) long userIdWhoWantView) {
+        return userClient.getAllUsers(userIdWhoWantView);
     }
 
     @PatchMapping("/{idOfUser}")
-    public UserDto updateUser(@RequestBody UserDto userDto, @PathVariable long idOfUser) {
-        return userService.updateUser(userDto, idOfUser);
+    public ResponseEntity<Object> updateUser(@RequestBody UserDto userDto,
+                                             @Positive @PathVariable long idOfUser) {
+        return userClient.updateUser(userDto, idOfUser);
     }
 
     @DeleteMapping("/{idOfUser}")
-    public UserDto deleteUserById(@PathVariable long idOfUser) {
-        return userService.deleteUser(idOfUser);
+    public ResponseEntity<Object> deleteUserById(@Positive @PathVariable long idOfUser) {
+        return userClient.deleteUser(idOfUser);
     }
 }
