@@ -43,7 +43,6 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public ItemDto createItem(ItemDto itemDto, long userId) {
         isUserExistsById(userId);
-        itemDto.setOwnerId(userId);
         Item itemForSave = itemRepository.save(ItemMapper.toItem(itemDto));
         return ItemMapper.toItemDto(itemForSave, getCommentDtosToOneItemDto(itemForSave.getId()));
     }

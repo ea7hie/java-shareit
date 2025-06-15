@@ -1,60 +1,66 @@
 package ru.practicum.shareit.item;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.shareit.item.comment.CommentDto;
+import ru.practicum.shareit.client.BaseClient;
 import ru.practicum.shareit.item.comment.CommentDtoForCreate;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemDtoForOwner;
-
-import java.util.Collection;
 
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
 public class ItemController {
-    private final ItemService itemService;
-    private final String headerOfUserId = "X-Sharer-User-Id";
+    private final ItemClient itemClient;
+    private final String headerOfUserId = BaseClient.headerOfUserId;
 
     @PostMapping
-    public ItemDto createNewItem(@RequestBody ItemDto itemDto, @RequestHeader(headerOfUserId) long ownerId) {
-        return itemService.createItem(itemDto, ownerId);
+    public ResponseEntity<Object> createNewItem(@RequestHeader(headerOfUserId) long ownerId,
+                                                @RequestBody ItemDto itemDto) {
+        return itemClient.createItem(itemDto, ownerId);
     }
 
     @GetMapping
-    public Collection<ItemDtoForOwner> getItemByOwnerId(@RequestHeader(headerOfUserId) long userId) {
-        return itemService.getAllItemsByOwnerId(userId);
+    public ResponseEntity<Object> getItemByOwnerId(@RequestHeader(headerOfUserId) long userId) {
+        return itemClient.getAllItemsByOwnerId(userId);
     }
 
     @GetMapping("/{idOfItem}")
-    public ItemDtoForOwner getItemById(@PathVariable long idOfItem, @RequestHeader(headerOfUserId) long ownerId) {
-        return itemService.getItemDtoById(idOfItem, ownerId);
+    public ResponseEntity<Object> getItemById(@Positive @PathVariable long idOfItem,
+                                              @RequestHeader(headerOfUserId) long ownerId) {
+        return itemClient.getItemDtoById(idOfItem, ownerId);
     }
 
     @GetMapping("/search")
-    public Collection<ItemDto> getItemBySearch(@RequestParam String text) {
-        return itemService.getAllItemBySearch(text.trim());
+    public ResponseEntity<Object> getItemBySearch(@RequestParam("text") String text,
+                                                  @RequestHeader(headerOfUserId) long userId) {
+        return itemClient.getAllItemBySearch(text.trim(), userId);
     }
 
     @PatchMapping("/{idOfItem}")
-    public ItemDto updateItem(@RequestBody ItemDto itemDto, @RequestHeader(headerOfUserId) long ownerId,
-                              @PathVariable long idOfItem) {
-        return itemService.updateItem(itemDto, ownerId, idOfItem);
-    }
-
-    @PostMapping("/{itemId}/comment")
-    public CommentDto createNewComment(@RequestBody CommentDtoForCreate commentDtoForCreate,
-                                       @RequestHeader(headerOfUserId) long authorId, @PathVariable long itemId) {
-        return itemService.createNewComment(commentDtoForCreate, authorId, itemId);
+    public ResponseEntity<Object> updateItem(@RequestBody ItemDto itemDto,
+                                             @RequestHeader(headerOfUserId) long ownerId,
+                                             @Positive @PathVariable long idOfItem) {
+        return itemClient.updateItem(itemDto, ownerId, idOfItem);
     }
 
     @DeleteMapping("/{idOfItem}")
-    public ItemDto deleteItem(@PathVariable long idOfItem, @RequestHeader(headerOfUserId) long ownerId) {
-        return itemService.deleteItemById(idOfItem, ownerId);
+    public ResponseEntity<Object> deleteItem(@Positive @PathVariable long idOfItem,
+                                             @RequestHeader(headerOfUserId) long ownerId) {
+        return itemClient.deleteItemById(idOfItem, ownerId);
     }
 
     @DeleteMapping
-    public Collection<ItemDto> deleteAllItemsByOwnerId(@RequestHeader(headerOfUserId) long ownerId) {
-        return itemService.deleteAllItemsFromOwner(ownerId);
+    public ResponseEntity<Object> deleteAllItemsByOwnerId(@RequestHeader(headerOfUserId) long ownerId) {
+        return itemClient.deleteAllItemsFromOwner(ownerId);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public ResponseEntity<Object> createNewComment(@RequestBody @Valid CommentDtoForCreate commentDtoForCreate,
+                                                   @RequestHeader(headerOfUserId) long authorId,
+                                                   @Positive @PathVariable long itemId) {
+        return itemClient.createNewComment(commentDtoForCreate, authorId, itemId);
     }
 }

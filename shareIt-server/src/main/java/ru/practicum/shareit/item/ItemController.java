@@ -42,12 +42,6 @@ public class ItemController {
         return itemService.updateItem(itemDto, ownerId, idOfItem);
     }
 
-    @PostMapping("/{itemId}/comment")
-    public CommentDto createNewComment(@RequestBody CommentDtoForCreate commentDtoForCreate,
-                                       @RequestHeader(headerOfUserId) long authorId, @PathVariable long itemId) {
-        return itemService.createNewComment(commentDtoForCreate, authorId, itemId);
-    }
-
     @DeleteMapping("/{idOfItem}")
     public ItemDto deleteItem(@PathVariable long idOfItem, @RequestHeader(headerOfUserId) long ownerId) {
         return itemService.deleteItemById(idOfItem, ownerId);
@@ -56,5 +50,11 @@ public class ItemController {
     @DeleteMapping
     public Collection<ItemDto> deleteAllItemsByOwnerId(@RequestHeader(headerOfUserId) long ownerId) {
         return itemService.deleteAllItemsFromOwner(ownerId);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto createNewComment(@RequestBody CommentDtoForCreate commentDtoForCreate,
+                                       @RequestHeader(headerOfUserId) long authorId, @PathVariable long itemId) {
+        return itemService.createNewComment(commentDtoForCreate, authorId, itemId);
     }
 }
