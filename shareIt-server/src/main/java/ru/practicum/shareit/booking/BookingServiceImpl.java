@@ -105,8 +105,9 @@ public class BookingServiceImpl implements BookingService {
     public Collection<BookingDto> getAllBookingsByStatusForOwnerInAmount(long userId, BookingDtoStates state,
                                                                          int from, int size) {
         isUserExistsById(userId);
-
-        return  bookingRepository.getAllBookingsByStatusForOwnerInAmount(userId, state, from, size).stream()
+        return bookingRepository.findAllByBookerId(userId).stream()
+                .skip(from)
+                .limit(size)
                 .map(booking -> BookingMapper.toBookingDto(booking, getCommentDtosByItemId(booking.getItem().getId())))
                 .toList();
     }

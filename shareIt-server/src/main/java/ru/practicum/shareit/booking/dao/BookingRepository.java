@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.BookingStatus;
-import ru.practicum.shareit.enums.BookingDtoStates;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -20,13 +19,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     Collection<Booking> findAllByBookerId(long bookerId);
 
     Collection<Booking> findAllByBookerIdAndStatus(long bookerId, BookingStatus status);
-
-    @Query(value = "SELECT * FROM bookings b WHERE b.booker_id = :userId AND b.status = :state LIMIT :size OFFSET :from",
-            nativeQuery = true)
-    Collection<Booking> getAllBookingsByStatusForOwnerInAmount(@Param("userId") long userId,
-                                                               @Param("state") BookingDtoStates state,
-                                                               @Param("from") int from,
-                                                               @Param("size") int size);
 
     Collection<Booking> findAllByBookerIdAndEndBeforeOrderByEndDesc(long bookerId, LocalDateTime start);
 
