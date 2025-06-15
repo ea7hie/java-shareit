@@ -29,8 +29,8 @@ public class UserClient extends BaseClient {
         return post("", userDto);
     }
 
-    public ResponseEntity<Object> getUserByID(long idOfUser, long userIdWhoWantView) {
-        return get("/" + idOfUser, userIdWhoWantView);
+    public ResponseEntity<Object> getUserByID(long idOfUser) {
+        return get("/" + idOfUser);
     }
 
     public ResponseEntity<Object> getAllUsers(long userIdWhoWantView) {

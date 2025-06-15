@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.client.BaseClient;
 import ru.practicum.shareit.user.dto.UserDto;
 
 @RestController
@@ -12,7 +13,7 @@ import ru.practicum.shareit.user.dto.UserDto;
 @RequiredArgsConstructor
 public class UserController {
     private final UserClient userClient;
-    private final String headerOfUserId = "X-Sharer-User-Id";
+    private final String headerOfUserId = BaseClient.headerOfUserId;
 
     @PostMapping
     public ResponseEntity<Object> createNewUser(@RequestBody @Valid UserDto userDto) {
@@ -20,9 +21,8 @@ public class UserController {
     }
 
     @GetMapping("/{idOfUser}")
-    public ResponseEntity<Object> getUserById(@Positive @PathVariable long idOfUser,
-                                              @RequestHeader(headerOfUserId) long userIdWhoWantView) {
-        return userClient.getUserByID(idOfUser, userIdWhoWantView);
+    public ResponseEntity<Object> getUserById(@Positive @PathVariable long idOfUser) {
+        return userClient.getUserByID(idOfUser);
     }
 
     @GetMapping
