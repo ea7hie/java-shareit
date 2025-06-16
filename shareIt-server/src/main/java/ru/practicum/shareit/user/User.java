@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @NotBlank(message = "Имя пользователя не может быть пустым")
     @Column(name = "name", nullable = false)
