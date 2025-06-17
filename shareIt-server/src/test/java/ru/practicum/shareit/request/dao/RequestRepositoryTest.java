@@ -9,7 +9,6 @@ import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,7 +43,7 @@ class RequestRepositoryTest {
         ItemRequest request2 = new ItemRequest();
         request2.setRequesterId(saved.getId());
         request2.setDescription("Request 2");
-       request2.setCreated(LocalDateTime.now());
+        request2.setCreated(LocalDateTime.now());
         requestRepository.save(request2);
 
         ItemRequest request3 = new ItemRequest();
