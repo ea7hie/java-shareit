@@ -62,7 +62,7 @@ public class BookingTest {
         assertThat(violations).isNotEmpty();
         boolean foundFutureViolation = violations.stream()
                 .anyMatch(v -> v.getPropertyPath().toString().equals("end") && v.getMessage().contains("must be a future date"));
-        assertThat(!foundFutureViolation).isTrue();
+        assertThat(foundFutureViolation).isTrue();
     }
 
     @Test
@@ -76,6 +76,6 @@ public class BookingTest {
         assertThat(violations).isNotEmpty();
         boolean foundFutureOrPresentViolation = violations.stream()
                 .anyMatch(v -> v.getPropertyPath().toString().equals("start") && v.getMessage().contains("must be a date in the present or in the future"));
-        assertThat(!foundFutureOrPresentViolation).isTrue();
+        assertThat(foundFutureOrPresentViolation).isTrue();
     }
 }
