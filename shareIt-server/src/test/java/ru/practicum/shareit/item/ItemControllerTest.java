@@ -32,7 +32,7 @@ class ItemControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private final String HEADER = "X-Sharer-User-Id";
+    private final String header = "X-Sharer-User-Id";
 
     @Test
     void shouldCreateNewItem() throws Exception {
@@ -41,7 +41,7 @@ class ItemControllerTest {
 
         mockMvc.perform(post("/items")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header(HEADER, 1L)
+                        .header(header, 1L)
                         .content(objectMapper.writeValueAsString(itemDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(itemDto.getId()))
@@ -54,7 +54,7 @@ class ItemControllerTest {
         Mockito.when(itemService.getAllItemsByOwnerId(1L)).thenReturn(List.of(item));
 
         mockMvc.perform(get("/items")
-                        .header(HEADER, 1L))
+                        .header(header, 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(item.getId()));
     }
@@ -65,7 +65,7 @@ class ItemControllerTest {
         Mockito.when(itemService.getItemDtoById(1L, 1L)).thenReturn(item);
 
         mockMvc.perform(get("/items/1")
-                        .header(HEADER, 1L))
+                        .header(header, 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(item.getId()));
     }
@@ -87,7 +87,7 @@ class ItemControllerTest {
         Mockito.when(itemService.updateItem(any(), eq(1L), eq(1L))).thenReturn(updated);
 
         mockMvc.perform(patch("/items/1")
-                        .header(HEADER, 1L)
+                        .header(header, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updated)))
                 .andExpect(status().isOk())
@@ -100,7 +100,7 @@ class ItemControllerTest {
         Mockito.when(itemService.deleteItemById(1L, 1L)).thenReturn(deleted);
 
         mockMvc.perform(delete("/items/1")
-                        .header(HEADER, 1L))
+                        .header(header, 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(deleted.getId()));
     }
@@ -111,7 +111,7 @@ class ItemControllerTest {
         Mockito.when(itemService.deleteAllItemsFromOwner(1L)).thenReturn(List.of(item));
 
         mockMvc.perform(delete("/items")
-                        .header(HEADER, 1L))
+                        .header(header, 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(item.getId()));
     }
@@ -124,7 +124,7 @@ class ItemControllerTest {
         Mockito.when(itemService.createNewComment(any(), eq(1L), eq(1L))).thenReturn(response);
 
         mockMvc.perform(post("/items/1/comment")
-                        .header(HEADER, 1L)
+                        .header(header, 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createDto)))
                 .andExpect(status().isOk())
