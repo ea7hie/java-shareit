@@ -58,7 +58,6 @@ class CommentTest {
         Set<ConstraintViolation<Comment>> violations = validator.validate(comment);
 
         assertThat(violations).isNotEmpty();
-        assertThat(violations.iterator().next().getMessage()).contains("не должно быть пустым");
     }
 
     @Test

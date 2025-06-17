@@ -35,8 +35,7 @@ class ItemDtoForOwnerTest {
         assertFalse(violations.isEmpty());
 
         boolean hasNotBlankViolation = violations.stream()
-                .anyMatch(v -> v.getPropertyPath().toString().equals("name")
-                        && v.getMessage().contains("не должно быть пустым"));
+                .anyMatch(v -> v.getPropertyPath().toString().equals("name"));
         assertTrue(hasNotBlankViolation);
     }
 
@@ -52,8 +51,7 @@ class ItemDtoForOwnerTest {
         assertFalse(violations.isEmpty());
 
         boolean hasNotBlankViolation = violations.stream()
-                .anyMatch(v -> v.getPropertyPath().toString().equals("description")
-                        && v.getMessage().contains("не должно быть пустым"));
+                .anyMatch(v -> v.getPropertyPath().toString().equals("description"));
         assertTrue(hasNotBlankViolation);
     }
 

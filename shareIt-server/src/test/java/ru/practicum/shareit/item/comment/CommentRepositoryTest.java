@@ -69,7 +69,7 @@ class CommentRepositoryTest {
         commentRepository.save(comment3);
         commentRepository.save(comment4);
 
-        Collection<Comment> comments = commentRepository.findAllByItemId(2L);
+        Collection<Comment> comments = commentRepository.findAllByItemId(item2.getId());
 
         assertThat(comments).hasSize(2)
                 .extracting(Comment::getText)
@@ -118,7 +118,7 @@ class CommentRepositoryTest {
         commentRepository.save(comment3);
         commentRepository.save(comment4);
 
-        Collection<Comment> comments = commentRepository.findAllByItemIdIn(List.of(4L, 6L));
+        Collection<Comment> comments = commentRepository.findAllByItemIdIn(List.of(item1.getId(), item3.getId()));
 
         assertThat(comments).hasSize(2)
                 .extracting(Comment::getText)
