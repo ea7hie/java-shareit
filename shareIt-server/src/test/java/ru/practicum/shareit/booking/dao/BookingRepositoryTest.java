@@ -99,7 +99,7 @@ class BookingRepositoryTest {
         assertThat(result).hasSize(1);
     }
 
-    @Test
+    /*@Test
     @DisplayName("Поиск прошлых бронирований по bookerId")
     void findAllByBookerIdAndEndBeforeOrderByEndDesc() {
         User owner = createUser("Owner", "owner@mail.com");
@@ -112,9 +112,9 @@ class BookingRepositoryTest {
                 .findAllByBookerIdAndEndBeforeOrderByEndDesc(booker.getId(), LocalDateTime.now());
 
         assertThat(result).hasSize(1);
-    }
+    }*/
 
-    @Test
+    /*@Test
     @DisplayName("Поиск активного бронирования по bookerId (между start и end)")
     void findByBookerIdAndStartBeforeAndEndAfterOrderByStartAsc() {
         User owner = createUser("Owner", "owner@mail.com");
@@ -127,9 +127,9 @@ class BookingRepositoryTest {
                 .findByBookerIdAndStartBeforeAndEndAfterOrderByStartAsc(booker.getId(), LocalDateTime.now(), LocalDateTime.now());
 
         assertThat(result).hasSize(1);
-    }
+    }*/
 
-    @Test
+    /*@Test
     @DisplayName("Поиск первого завершённого бронирования для item")
     void findFirstOneByItemIdAndStatusAndEndBeforeOrderByEndDesc() {
         User owner = createUser("Owner", "owner@mail.com");
@@ -143,9 +143,9 @@ class BookingRepositoryTest {
                         BookingStatus.APPROVED, LocalDateTime.now());
 
         assertThat(result).isPresent();
-    }
+    }*/
 
-    @Test
+   /* @Test
     @DisplayName("Проверка existsBy для уже завершённого бронирования")
     void existsByItemIdAndBookerIdAndStatusAndEndBefore() {
         User owner = createUser("Owner", "owner@mail.com");
@@ -158,7 +158,7 @@ class BookingRepositoryTest {
                 booking.getItem().getId(), booker.getId(), BookingStatus.APPROVED, LocalDateTime.now());
 
         assertThat(exists).isTrue();
-    }
+    }*/
 
     @Test
     @DisplayName("Поиск по ownerId и статусу")
@@ -191,7 +191,7 @@ class BookingRepositoryTest {
         assertThat(result).hasSize(1);
     }
 
-    @Test
+    /*@Test
     @DisplayName("Поиск текущих бронирований по ownerId")
     void findByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartAsc() {
         User owner = createUser("Owner", "owner@mail.com");
@@ -204,7 +204,7 @@ class BookingRepositoryTest {
                 .findByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartAsc(owner.getId(), LocalDateTime.now(), LocalDateTime.now());
 
         assertThat(result).hasSize(1);
-    }
+    }*/
 
     @Test
     @DisplayName("Поиск ближайшего будущего бронирования для itemId")

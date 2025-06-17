@@ -22,9 +22,11 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -76,7 +78,7 @@ public class ItemServiceImpl implements ItemService {
         return items.stream()
                 .map(item -> ItemMapper.toItemDto(item,
                         getCommentDtosForOneItemDtoFromComments(commentsByItemIds, item.getId())))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -130,7 +132,7 @@ public class ItemServiceImpl implements ItemService {
         return allByOwnerId.stream()
                 .map(item -> ItemMapper.toItemDto(
                         item, getCommentDtosForOneItemDtoFromComments(commentsByItemIds, item.getId())))
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
 
     }
 

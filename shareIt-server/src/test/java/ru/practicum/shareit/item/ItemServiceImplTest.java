@@ -2,23 +2,31 @@ package ru.practicum.shareit.item;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import ru.practicum.shareit.booking.dao.BookingRepository;
 import ru.practicum.shareit.booking.model.BookingStatus;
+import ru.practicum.shareit.exception.model.AccessError;
+import ru.practicum.shareit.exception.model.NotFoundException;
+import ru.practicum.shareit.exception.model.ValidationException;
 import ru.practicum.shareit.item.comment.Comment;
 import ru.practicum.shareit.item.comment.CommentDtoForCreate;
+import ru.practicum.shareit.item.comment.CommentRepository;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
-import ru.practicum.shareit.booking.dao.BookingRepository;
-import ru.practicum.shareit.item.comment.CommentRepository;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -38,6 +46,9 @@ class ItemServiceImplTest {
 
     @Mock
     private CommentRepository commentRepository;
+
+    private final Long userId = 1L;
+    private final Long itemId = 2L;
 
     @BeforeEach
     void setUp() {
@@ -88,6 +99,22 @@ class ItemServiceImplTest {
     }
 
     @Test
+    void createItem_whenValid_shouldReturnItemDto() {
+        ItemDto itemDto = new ItemDto(1L, "дрель", "мощная", 1L, 0L, true, null);
+        Item item = ItemMapper.toItem(itemDto);
+        item.setId(itemId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+        when(itemRepository.save(any())).thenReturn(item);
+        when(commentRepository.findAllByItemId(itemId)).thenReturn(Collections.emptyList());
+
+        ItemDto result = itemService.createItem(itemDto, userId);
+
+        assertNotNull(result);
+        assertEquals("дрель", result.getName());
+    }
+
+    @Test
     void getItemDtoById_whenItemExistsAndUserIsOwner_thenReturnsItemDtoForOwner() {
         long itemId = 1L;
         long ownerId = 10L;
@@ -109,6 +136,55 @@ class ItemServiceImplTest {
     }
 
     @Test
+    void getItemDtoById_whenNotFound_shouldThrowException() {
+        when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
+
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> itemService.getItemDtoById(itemId, userId));
+
+        assertTrue(exception.getMessage().contains("не найдено"));
+    }
+
+   /* @Test
+    void getAllItemBySearch_shouldReturnMatchingItemsWithComments() {
+        String text = "дрель";
+
+        Item item = new Item(1L, "Дрель", "Мощная дрель", 1L, null, true);
+        List<Item> items = List.of(item);
+
+        Comment comment = new Comment(1L, "Крутая вещь", new User(), item, LocalDateTime.now());
+
+        when(itemRepository
+                .findByDescriptionContainsIgnoreCaseAndIsAvailableIsTrueOrNameContainsIgnoreCaseAndIsAvailableIsTrue(text, text))
+                .thenReturn(items);
+
+        when(commentRepository.findAllByItemIdIn(List.of(1L)))
+                .thenReturn(List.of(comment));
+
+        Collection<ItemDto> result = itemService.getAllItemBySearch(text);
+
+        assertThat(result).hasSize(1);
+
+        ItemDto itemDto = result.iterator().next();
+        assertThat(itemDto.getName()).isEqualTo("Дрель");
+        assertThat(itemDto.getDescription()).contains("дрель");
+        assertThat(itemDto.getComments()).hasSize(1);
+        assertThat(itemDto.getComments().get(0).getText()).isEqualTo("Крутая вещь");
+    }*/
+
+    @Test
+    void getAllItemBySearch_shouldReturnEmptyList_whenTextIsEmpty() {
+        String text = "";
+
+        Collection<ItemDto> result = itemService.getAllItemBySearch(text);
+
+        assertThat(result).isEmpty();
+        verifyNoInteractions(itemRepository, commentRepository);
+    }
+
+
+
+    @Test
     void updateItem_whenOwnerIsCorrect_thenItemIsUpdated() {
         long ownerId = 5L;
         long itemId = 2L;
@@ -126,6 +202,17 @@ class ItemServiceImplTest {
         assertEquals("New desc", result.getDescription());
         assertFalse(result.getAvailable());
         verify(itemRepository).updateItem(itemId, "New", "New desc", false);
+    }
+
+    @Test
+    void updateItem_whenNotOwner_shouldThrowAccessError() {
+        ItemDto itemDto = new ItemDto(itemId, "новое имя", "описание", 1L, 0L, true, null);
+        Item existingItem = new Item(itemId, "старое", "старое", 99L, null, true);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(existingItem));
+
+        assertThrows(AccessError.class, () -> itemService.updateItem(itemDto, userId, itemId));
     }
 
     @Test
@@ -153,6 +240,45 @@ class ItemServiceImplTest {
     }
 
     @Test
+    void createNewComment_whenNoBooking_shouldThrowValidationException() {
+        Item item = new Item(itemId, "название", "описание", userId, null, true);
+        User author = new User(userId, "user", "user@mail.com");
+
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(author));
+        when(bookingRepository.existsByItemIdAndBookerIdAndStatusAndEndBefore(
+                eq(itemId), eq(userId), eq(BookingStatus.APPROVED), any(LocalDateTime.class))
+        ).thenReturn(false);
+
+        CommentDtoForCreate commentDtoForCreate = new CommentDtoForCreate("отлично");
+
+        assertThrows(ValidationException.class,
+                () -> itemService.createNewComment(commentDtoForCreate, userId, itemId));
+    }
+
+    @Test
+    void createNewComment_shouldThrowNotFound_whenItemNotFound() {
+        when(itemRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> itemService.createNewComment(new CommentDtoForCreate("text"), 1L, 99L));
+        assertThat(ex.getMessage()).contains("Вещи с id = 99");
+    }
+
+    @Test
+    void createNewComment_shouldThrowNotFound_whenUserNotFound() {
+        long itemId = 1L;
+        Item item = new Item(itemId, "Item", "Desc", 3L, null, true);
+
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(userRepository.findById(999L)).thenReturn(Optional.empty());
+
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> itemService.createNewComment(new CommentDtoForCreate("text"), 999L, itemId));
+        assertThat(ex.getMessage()).contains("Пользователя с id = 999");
+    }
+
+    @Test
     void deleteItemById_whenOwnerIsCorrect_thenItemDeleted() {
         long itemId = 99L;
         long ownerId = 1L;
@@ -168,4 +294,57 @@ class ItemServiceImplTest {
         assertEquals(itemId, result.getId());
         verify(itemRepository).deleteById(itemId);
     }
+
+    @Test
+    void deleteItemById_shouldThrowAccessError_whenUserIsNotOwner() {
+        long itemId = 1L;
+        long ownerId = 100L;
+        long otherUserId = 200L;
+
+        Item item = new Item(itemId, "Вещь", "Описание", ownerId, null, true);
+
+        when(userRepository.findById(otherUserId)).thenReturn(Optional.of(new User()));
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        AccessError ex = assertThrows(AccessError.class, () -> itemService.deleteItemById(itemId, otherUserId));
+
+        assertThat(ex.getMessage()).isEqualTo("Удалять данные о вещи может только владелец.");
+        verify(itemRepository, never()).deleteById(anyLong());
+    }
+
+    /*@Test
+    void deleteAllItemsFromOwner_shouldDeleteAllItems_whenUserExists() {
+        long ownerId = 1L;
+        Item item1 = new Item(1L, "Item 1", "Desc 1", ownerId, null, true);
+        Item item2 = new Item(2L, "Item 2", "Desc 2", ownerId, null, true);
+        List<Item> items = List.of(item1, item2);
+
+        Comment comment1 = new Comment(10L, "Comment 1", new User(), item1, LocalDateTime.now());
+        Comment comment2 = new Comment(11L, "Comment 2", new User(), item2, LocalDateTime.now());
+
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(new User()));
+        when(itemRepository.findAllByOwnerId(ownerId)).thenReturn(items);
+        when(commentRepository.findAllByItemIdIn(List.of(1L, 2L))).thenReturn(List.of(comment1, comment2));
+
+        Collection<ItemDto> result = itemService.deleteAllItemsFromOwner(ownerId);
+
+        verify(itemRepository).deleteAllItemsFromOwner(ownerId);
+        assertThat(result).hasSize(2);
+        assertThat(result.stream().anyMatch(i -> i.getName().equals("Item 1"))).isTrue();
+        assertThat(result.stream().anyMatch(i -> i.getName().equals("Item 2"))).isTrue();
+    }*/
+
+    @Test
+    void deleteAllItemsFromOwner_shouldThrowNotFound_whenUserDoesNotExist() {
+        long ownerId = 999L;
+        when(userRepository.findById(ownerId)).thenReturn(Optional.empty());
+
+        NotFoundException ex = assertThrows(NotFoundException.class,
+                () -> itemService.deleteAllItemsFromOwner(ownerId));
+
+        assertThat(ex.getMessage()).contains("Пользователя с id = 999 для отображения не найдено");
+        verify(itemRepository, never()).deleteAllItemsFromOwner(anyLong());
+    }
+
+
 }
