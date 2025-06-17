@@ -7,6 +7,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import ru.practicum.shareit.item.dao.ItemRepository;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
@@ -23,54 +24,101 @@ class CommentRepositoryTest {
     @Autowired
     private ItemRepository itemRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
     @Test
     @DisplayName("Should find all comments by itemId")
     void findAllByItemId() {
         User user = new User();
-        Item item10 = new Item();
-        item10.setId(10L);
-        Item item11 = new Item();
-        item11.setId(11L);
-        Item item12 = new Item();
-        item12.setId(12L);
+        user.setName("User");
+        user.setEmail("user@example.com");
+        User saved = userRepository.save(user);
 
-        itemRepository.save(item10);
-        itemRepository.save(item11);
-        itemRepository.save(item12);
+        Item item1 = new Item();
+        item1.setName("Item 1");
+        item1.setDescription("Item 1 desc");
+        item1.setOwnerId(saved.getId());
+        item1.setRequestId(0L);
+        item1.setAvailable(true);
 
-        Comment comment1 = new Comment(1L, "Text1", user, item10, LocalDateTime.now());
-        Comment comment2 = new Comment(0L, "Text2", user, item11, LocalDateTime.now());
-        Comment comment3 = new Comment(0L, "Text3", user, item12, LocalDateTime.now());
+        Item item2 = new Item();
+        item2.setName("Item 2");
+        item2.setDescription("Item 2 desc");
+        item2.setOwnerId(saved.getId());
+        item2.setRequestId(0L);
+        item2.setAvailable(true);
+
+        Item item3 = new Item();
+        item3.setName("Item 3");
+        item3.setDescription("Item 3 desc");
+        item3.setOwnerId(saved.getId());
+        item3.setRequestId(0L);
+        item3.setAvailable(true);
+
+        itemRepository.save(item1);
+        itemRepository.save(item2);
+        itemRepository.save(item3);
+
+        Comment comment1 = new Comment(0L, "Text1", user, item1, LocalDateTime.now());
+        Comment comment2 = new Comment(0L, "Text2", user, item2, LocalDateTime.now());
+        Comment comment3 = new Comment(0L, "Text3", user, item3, LocalDateTime.now());
+        Comment comment4 = new Comment(0L, "Text4", user, item2, LocalDateTime.now());
         commentRepository.save(comment1);
         commentRepository.save(comment2);
         commentRepository.save(comment3);
+        commentRepository.save(comment4);
 
-        Collection<Comment> comments = commentRepository.findAllByItemId(1L);
+        Collection<Comment> comments = commentRepository.findAllByItemId(2L);
 
         assertThat(comments).hasSize(2)
                 .extracting(Comment::getText)
-                .containsExactlyInAnyOrder("Text1", "Text2");
+                .containsExactlyInAnyOrder("Text2", "Text4");
     }
 
     @Test
     @DisplayName("Should find all comments by collection of itemIds")
     void findAllByItemIdIn() {
         User user = new User();
-        Item item10 = new Item();
-        item10.setId(10L);
-        Item item11 = new Item();
-        item11.setId(11L);
-        Item item12 = new Item();
-        item12.setId(12L);
+        user.setName("User");
+        user.setEmail("user2@example.com");
+        User saved = userRepository.save(user);
 
-        Comment comment1 = new Comment(null, "Text1", user, item10, LocalDateTime.now());
-        Comment comment2 = new Comment(null, "Text2", user, item11, LocalDateTime.now());
-        Comment comment3 = new Comment(null, "Text3", user, item12, LocalDateTime.now());
+        Item item1 = new Item();
+        item1.setName("Item 1");
+        item1.setDescription("Item 1 desc");
+        item1.setOwnerId(saved.getId());
+        item1.setRequestId(0L);
+        item1.setAvailable(true);
+
+        Item item2 = new Item();
+        item2.setName("Item 2");
+        item2.setDescription("Item 2 desc");
+        item2.setOwnerId(saved.getId());
+        item2.setRequestId(0L);
+        item2.setAvailable(true);
+
+        Item item3 = new Item();
+        item3.setName("Item 3");
+        item3.setDescription("Item 3 desc");
+        item3.setOwnerId(saved.getId());
+        item3.setRequestId(0L);
+        item3.setAvailable(true);
+
+        itemRepository.save(item1);
+        itemRepository.save(item2);
+        itemRepository.save(item3);
+
+        Comment comment1 = new Comment(0L, "Text1", user, item1, LocalDateTime.now());
+        Comment comment2 = new Comment(0L, "Text2", user, item2, LocalDateTime.now());
+        Comment comment3 = new Comment(0L, "Text3", user, item3, LocalDateTime.now());
+        Comment comment4 = new Comment(0L, "Text4", user, item2, LocalDateTime.now());
         commentRepository.save(comment1);
         commentRepository.save(comment2);
         commentRepository.save(comment3);
+        commentRepository.save(comment4);
 
-        Collection<Comment> comments = commentRepository.findAllByItemIdIn(List.of(1L, 3L));
+        Collection<Comment> comments = commentRepository.findAllByItemIdIn(List.of(4L, 6L));
 
         assertThat(comments).hasSize(2)
                 .extracting(Comment::getText)
