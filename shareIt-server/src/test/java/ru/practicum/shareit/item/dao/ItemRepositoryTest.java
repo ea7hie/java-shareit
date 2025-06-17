@@ -10,7 +10,6 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.dao.UserRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
