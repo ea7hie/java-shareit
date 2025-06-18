@@ -9,7 +9,7 @@
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>shareIt-gateway</artifactId>
+    <artifactId>gateway</artifactId>
 
     <properties>
         <maven.compiler.source>23</maven.compiler.source>
@@ -20,7 +20,7 @@
     <dependencies>
         <dependency>
             <groupId>ru.practicum</groupId>
-            <artifactId>shareIt-server</artifactId>
+            <artifactId>server</artifactId>
             <version>0.0.1-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
