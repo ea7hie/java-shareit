@@ -102,7 +102,6 @@ class BookingServiceImplTest {
     @Test
     void updateBooking_shouldUpdateBookingStatusByOwner() {
         item.setId(10L);
-        //user.setId(200L);
 
         booking.setItem(item);
         booking.setBooker(user);
