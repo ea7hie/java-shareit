@@ -85,16 +85,6 @@ class ItemRepositoryTest {
         assertThat(items).hasSize(2).containsExactlyInAnyOrder(item1, item2);
     }
 
-   /* @Test
-    void testUpdateItem() {
-        itemRepository.updateItem(item1.getId(), "Отвертка 2", "Новая красная отвертка", false);
-        Optional<Item> updatedItem = itemRepository.findById(item1.getId());
-        assertThat(updatedItem).isPresent();
-        assertThat(updatedItem.get().getName()).isEqualTo("Отвертка 2");
-        assertThat(updatedItem.get().getDescription()).isEqualTo("Новая красная отвертка");
-        assertThat(updatedItem.get().isAvailable()).isFalse();
-    }*/
-
     @Test
     void testDeleteAllItemsFromOwner() {
         itemRepository.deleteAllItemsFromOwner(saved.getId());

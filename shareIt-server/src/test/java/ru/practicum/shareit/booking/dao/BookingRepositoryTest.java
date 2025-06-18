@@ -99,67 +99,6 @@ class BookingRepositoryTest {
         assertThat(result).hasSize(1);
     }
 
-    /*@Test
-    @DisplayName("Поиск прошлых бронирований по bookerId")
-    void findAllByBookerIdAndEndBeforeOrderByEndDesc() {
-        User owner = createUser("Owner", "owner@mail.com");
-        User booker = createUser("Booker", "booker@mail.com");
-
-        createBooking(owner, booker, BookingStatus.APPROVED,
-                LocalDateTime.now().minusDays(3), LocalDateTime.now().minusDays(1));
-
-        List<Booking> result = (List<Booking>) bookingRepository
-                .findAllByBookerIdAndEndBeforeOrderByEndDesc(booker.getId(), LocalDateTime.now());
-
-        assertThat(result).hasSize(1);
-    }*/
-
-    /*@Test
-    @DisplayName("Поиск активного бронирования по bookerId (между start и end)")
-    void findByBookerIdAndStartBeforeAndEndAfterOrderByStartAsc() {
-        User owner = createUser("Owner", "owner@mail.com");
-        User booker = createUser("Booker", "booker@mail.com");
-
-        createBooking(owner, booker, BookingStatus.APPROVED,
-                LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(1));
-
-        List<Booking> result = (List<Booking>) bookingRepository
-                .findByBookerIdAndStartBeforeAndEndAfterOrderByStartAsc(booker.getId(), LocalDateTime.now(), LocalDateTime.now());
-
-        assertThat(result).hasSize(1);
-    }*/
-
-    /*@Test
-    @DisplayName("Поиск первого завершённого бронирования для item")
-    void findFirstOneByItemIdAndStatusAndEndBeforeOrderByEndDesc() {
-        User owner = createUser("Owner", "owner@mail.com");
-        User booker = createUser("Booker", "booker@mail.com");
-
-        Booking pastBooking = createBooking(owner, booker, BookingStatus.APPROVED,
-                LocalDateTime.now().minusDays(5), LocalDateTime.now().minusDays(3));
-
-        Optional<Booking> result = bookingRepository
-                .findFirstOneByItemIdAndStatusAndEndBeforeOrderByEndDesc(pastBooking.getItem().getId(),
-                        BookingStatus.APPROVED, LocalDateTime.now());
-
-        assertThat(result).isPresent();
-    }*/
-
-   /* @Test
-    @DisplayName("Проверка existsBy для уже завершённого бронирования")
-    void existsByItemIdAndBookerIdAndStatusAndEndBefore() {
-        User owner = createUser("Owner", "owner@mail.com");
-        User booker = createUser("Booker", "booker@mail.com");
-
-        Booking booking = createBooking(owner, booker, BookingStatus.APPROVED,
-                LocalDateTime.now().minusDays(4), LocalDateTime.now().minusDays(2));
-
-        boolean exists = bookingRepository.existsByItemIdAndBookerIdAndStatusAndEndBefore(
-                booking.getItem().getId(), booker.getId(), BookingStatus.APPROVED, LocalDateTime.now());
-
-        assertThat(exists).isTrue();
-    }*/
-
     @Test
     @DisplayName("Поиск по ownerId и статусу")
     void findAllByItemOwnerIdAndStatus() {
@@ -191,21 +130,6 @@ class BookingRepositoryTest {
         assertThat(result).hasSize(1);
     }
 
-    /*@Test
-    @DisplayName("Поиск текущих бронирований по ownerId")
-    void findByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartAsc() {
-        User owner = createUser("Owner", "owner@mail.com");
-        User booker = createUser("Booker", "booker@mail.com");
-
-        createBooking(owner, booker, BookingStatus.APPROVED,
-                LocalDateTime.now().minusHours(2), LocalDateTime.now().plusHours(2));
-
-        List<Booking> result = (List<Booking>) bookingRepository
-                .findByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartAsc(owner.getId(), LocalDateTime.now(), LocalDateTime.now());
-
-        assertThat(result).hasSize(1);
-    }*/
-
     @Test
     @DisplayName("Поиск ближайшего будущего бронирования для itemId")
     void findFirstOneByItemIdAndStatusAndStartAfterOrderByStartAsc() {
@@ -233,8 +157,8 @@ class BookingRepositoryTest {
                 LocalDateTime.now().plusDays(1), LocalDateTime.now().plusDays(2));
 
         bookingRepository.updateBooking(booking.getId(), BookingStatus.APPROVED);
-        em.flush(); // важно, чтобы обновление дошло до БД
-        em.clear(); // сбрасываем кэш
+        em.flush();
+        em.clear();
 
         Booking updated = em.find(Booking.class, booking.getId());
         assertThat(updated.getStatus()).isEqualTo(BookingStatus.APPROVED);

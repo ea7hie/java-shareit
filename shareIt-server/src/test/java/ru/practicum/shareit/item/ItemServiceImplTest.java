@@ -145,33 +145,6 @@ class ItemServiceImplTest {
         assertTrue(exception.getMessage().contains("не найдено"));
     }
 
-   /* @Test
-    void getAllItemBySearch_shouldReturnMatchingItemsWithComments() {
-        String text = "дрель";
-
-        Item item = new Item(1L, "Дрель", "Мощная дрель", 1L, null, true);
-        List<Item> items = List.of(item);
-
-        Comment comment = new Comment(1L, "Крутая вещь", new User(), item, LocalDateTime.now());
-
-        when(itemRepository
-                .findByDescriptionContainsIgnoreCaseAndIsAvailableIsTrueOrNameContainsIgnoreCaseAndIsAvailableIsTrue(text, text))
-                .thenReturn(items);
-
-        when(commentRepository.findAllByItemIdIn(List.of(1L)))
-                .thenReturn(List.of(comment));
-
-        Collection<ItemDto> result = itemService.getAllItemBySearch(text);
-
-        assertThat(result).hasSize(1);
-
-        ItemDto itemDto = result.iterator().next();
-        assertThat(itemDto.getName()).isEqualTo("Дрель");
-        assertThat(itemDto.getDescription()).contains("дрель");
-        assertThat(itemDto.getComments()).hasSize(1);
-        assertThat(itemDto.getComments().get(0).getText()).isEqualTo("Крутая вещь");
-    }*/
-
     @Test
     void getAllItemBySearch_shouldReturnEmptyList_whenTextIsEmpty() {
         String text = "";
@@ -312,28 +285,6 @@ class ItemServiceImplTest {
         verify(itemRepository, never()).deleteById(anyLong());
     }
 
-    /*@Test
-    void deleteAllItemsFromOwner_shouldDeleteAllItems_whenUserExists() {
-        long ownerId = 1L;
-        Item item1 = new Item(1L, "Item 1", "Desc 1", ownerId, null, true);
-        Item item2 = new Item(2L, "Item 2", "Desc 2", ownerId, null, true);
-        List<Item> items = List.of(item1, item2);
-
-        Comment comment1 = new Comment(10L, "Comment 1", new User(), item1, LocalDateTime.now());
-        Comment comment2 = new Comment(11L, "Comment 2", new User(), item2, LocalDateTime.now());
-
-        when(userRepository.findById(ownerId)).thenReturn(Optional.of(new User()));
-        when(itemRepository.findAllByOwnerId(ownerId)).thenReturn(items);
-        when(commentRepository.findAllByItemIdIn(List.of(1L, 2L))).thenReturn(List.of(comment1, comment2));
-
-        Collection<ItemDto> result = itemService.deleteAllItemsFromOwner(ownerId);
-
-        verify(itemRepository).deleteAllItemsFromOwner(ownerId);
-        assertThat(result).hasSize(2);
-        assertThat(result.stream().anyMatch(i -> i.getName().equals("Item 1"))).isTrue();
-        assertThat(result.stream().anyMatch(i -> i.getName().equals("Item 2"))).isTrue();
-    }*/
-
     @Test
     void deleteAllItemsFromOwner_shouldThrowNotFound_whenUserDoesNotExist() {
         long ownerId = 999L;
@@ -345,6 +296,4 @@ class ItemServiceImplTest {
         assertThat(ex.getMessage()).contains("Пользователя с id = 999 для отображения не найдено");
         verify(itemRepository, never()).deleteAllItemsFromOwner(anyLong());
     }
-
-
 }

@@ -160,45 +160,6 @@ class RequestServiceImplTest {
         assertTrue(error.getMessage().contains("У вас нет прав доступа"));
     }
 
-   /* @Test
-    void getAllItemRequest_ReturnsAllRequestsWithItems() {
-        ItemRequest req1 = new ItemRequest();
-        req1.setId(1L);
-        req1.setDescription("Request 1");
-
-        ItemRequest req2 = new ItemRequest();
-        req2.setId(2L);
-        req2.setDescription("Request 2");
-
-        List<ItemRequest> allRequests = List.of(req1, req2);
-
-        Item itemForReq1 = new Item();
-        itemForReq1.setId(100L);
-        itemForReq1.setRequestId(1L);
-        itemForReq1.setName("name");
-        itemForReq1.setDescription("desc");
-        itemForReq1.setOwnerId(1L);
-
-        Item itemForReq2 = new Item();
-        itemForReq2.setId(101L);
-        itemForReq2.setRequestId(2L);
-        itemForReq2.setName("name");
-        itemForReq2.setDescription("desc");
-        itemForReq2.setOwnerId(1L);
-
-        List<Item> allItems = List.of(itemForReq1, itemForReq2);
-
-        when(requestRepository.findAll()).thenReturn(allRequests);
-        when(itemRepository.findAllByRequestIdIn(List.of(1L, 2L))).thenReturn(allItems);
-
-        var results = requestService.getAllItemRequest();
-
-        assertNotNull(results);
-        assertEquals(2, results.size());
-        assertTrue(results.stream().anyMatch(dto -> dto.getDescription().equals("Request 1")));
-        assertTrue(results.stream().anyMatch(dto -> dto.getDescription().equals("Request 2")));
-    }*/
-
     @Test
     void getAllItemRequestsFromRequester_UserExists_ReturnsRequests() {
         long requesterId = user.getId();

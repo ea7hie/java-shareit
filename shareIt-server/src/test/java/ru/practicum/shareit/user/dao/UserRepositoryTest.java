@@ -30,19 +30,6 @@ class UserRepositoryTest {
         boolean exists = userRepository.existsByEmail("nonexistent@example.com");
         assertThat(exists).isFalse();
     }
-/*
-    @Test
-    void updateUser_shouldUpdateNameAndEmail() {
-        User user = new User(null, "Bob", "bob@example.com");
-        User savedUser = userRepository.save(user);
-
-        userRepository.updateUser(savedUser.getId(), "UpdatedBob", "updatedbob@example.com");
-        Optional<User> updatedUser = userRepository.findById(savedUser.getId());
-
-        assertThat(updatedUser).isPresent();
-        assertThat(updatedUser.get().getName()).isEqualTo("UpdatedBob");
-        assertThat(updatedUser.get().getEmail()).isEqualTo("updatedbob@example.com");
-    }*/
 
     @Test
     void findById_shouldReturnUser_whenUserExists() {
