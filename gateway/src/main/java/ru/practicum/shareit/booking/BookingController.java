@@ -15,10 +15,10 @@ import ru.practicum.shareit.client.BaseClient;
 
 
 @Controller
+@Validated
 @RequestMapping(path = "/bookings")
 @RequiredArgsConstructor
 @Slf4j
-@Validated
 public class BookingController {
     private final BookingClient bookingClient;
     private final String headerOfUserId = BaseClient.headerOfUserId;

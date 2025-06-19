@@ -4,12 +4,15 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.client.BaseClient;
 import ru.practicum.shareit.item.comment.CommentDtoForCreate;
 import ru.practicum.shareit.item.dto.ItemDto;
 
-@RestController
+@Controller
+@Validated
 @RequestMapping("/items")
 @RequiredArgsConstructor
 public class ItemController {

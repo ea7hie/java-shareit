@@ -14,6 +14,7 @@ import ru.practicum.shareit.enums.BookingDtoStates;
 import ru.practicum.shareit.exception.model.AccessError;
 import ru.practicum.shareit.exception.model.NotFoundException;
 import ru.practicum.shareit.exception.model.ValidationException;
+import ru.practicum.shareit.item.comment.Comment;
 import ru.practicum.shareit.item.comment.CommentDto;
 import ru.practicum.shareit.item.comment.CommentMapper;
 import ru.practicum.shareit.item.comment.CommentRepository;
@@ -29,6 +30,8 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -80,9 +83,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<BookingDto> getAllBookingsByItemId(long itemId) {
+    public Collection<BookingDto> getAllBookingsByItemId(long itemId) { //всего 1 вещь, выгружаем все отзывы к ней сразу
+        List<CommentDto> commentDtosByItemId = getCommentDtosByItemId(itemId);
         return bookingRepository.findAllByItemId(itemId).stream()
-                .map(booking -> BookingMapper.toBookingDto(booking, getCommentDtosByItemId(itemId)))
+                .map(booking -> BookingMapper.toBookingDto(booking, commentDtosByItemId))
                 .toList();
     }
 
@@ -96,8 +100,10 @@ public class BookingServiceImpl implements BookingService {
             return getAllBookingsByItemId(itemId);
         }
 
+        //всего 1 вещь, выгружаем все отзывы к ней сразу
+        List<CommentDto> commentDtosByItemId = getCommentDtosByItemId(itemId);
         return bookingRepository.findAllByItemIdAndStatus(itemId, bookingStatus).stream()
-                .map(booking -> BookingMapper.toBookingDto(booking, getCommentDtosByItemId(itemId)))
+                .map(booking -> BookingMapper.toBookingDto(booking, commentDtosByItemId))
                 .toList();
     }
 
@@ -126,18 +132,30 @@ public class BookingServiceImpl implements BookingService {
             case REJECTED -> bookingRepository.findAllByBookerIdAndStatus(userId, BookingStatus.REJECTED);
         };
 
+        Set<Long> allItemsIds = foundedBookings.stream()
+                .map(booking -> booking.getItem().getId())
+                .collect(Collectors.toSet());
+        Collection<Comment> commentsByItemIds = getCommentsByItemIds(allItemsIds);
+
         return foundedBookings.stream()
                 .map(booking -> BookingMapper.toBookingDto(booking,
-                        getCommentDtosByItemId(booking.getItem().getId())))
+                        getCommentDtosForOneItemDtoFromComments(commentsByItemIds, booking.getItem().getId())))
                 .toList();
     }
 
     @Override
     public Collection<BookingDto> getAllBookingsFromBooker(long bookerId) {
         isUserExistsById(bookerId);
-        return bookingRepository.findAllByBookerId(bookerId).stream()
+
+        Collection<Booking> foundedBookings = bookingRepository.findAllByBookerId(bookerId);
+        Set<Long> allItemsIds = foundedBookings.stream()
+                .map(booking -> booking.getItem().getId())
+                .collect(Collectors.toSet());
+        Collection<Comment> commentsByItemIds = getCommentsByItemIds(allItemsIds);
+
+        return foundedBookings.stream()
                 .map(booking -> BookingMapper.toBookingDto(booking,
-                        getCommentDtosByItemId(booking.getItem().getId())))
+                        getCommentDtosForOneItemDtoFromComments(commentsByItemIds, booking.getItem().getId())))
                 .toList();
     }
 
@@ -156,9 +174,14 @@ public class BookingServiceImpl implements BookingService {
             case REJECTED -> bookingRepository.findAllByItemOwnerIdAndStatus(ownerId, BookingStatus.REJECTED);
         };
 
+        Set<Long> allItemsIds = foundedBookings.stream()
+                .map(booking -> booking.getItem().getId())
+                .collect(Collectors.toSet());
+        Collection<Comment> commentsByItemIds = getCommentsByItemIds(allItemsIds);
+
         return foundedBookings.stream()
                 .map(booking -> BookingMapper.toBookingDto(booking,
-                        getCommentDtosByItemId(booking.getItem().getId())))
+                        getCommentDtosForOneItemDtoFromComments(commentsByItemIds, booking.getItem().getId())))
                 .toList();
     }
 
@@ -212,6 +235,17 @@ public class BookingServiceImpl implements BookingService {
 
     private List<CommentDto> getCommentDtosByItemId(long itemId) {
         return commentRepository.findAllByItemId(itemId).stream()
+                .map(CommentMapper::toCommentDto)
+                .toList();
+    }
+
+    private Collection<Comment> getCommentsByItemIds(Collection<Long> itemIds) {
+        return commentRepository.findAllByItemIdIn(itemIds);
+    }
+
+    private List<CommentDto> getCommentDtosForOneItemDtoFromComments(Collection<Comment> allComments, long itemID) {
+        return allComments.stream()
+                .filter(comment -> comment.getItem().getId() == itemID)
                 .map(CommentMapper::toCommentDto)
                 .toList();
     }
